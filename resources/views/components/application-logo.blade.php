@@ -1,0 +1,1 @@
+<a href="{{ route('dashboard') }}"><img src="{{ asset('logo-codeforce-01.png') }}" alt="CodeForce Logo" {{ $attributes }} /></a>
