@@ -60,6 +60,17 @@ public function canCreate(string $resource): bool
             // Vamos supor que seja limite total da escola por enquanto:
             return $this->users()->where('role', 'student')->count() < $limit;
 
+            case 'active_activities':
+    $limit = $this->plan->limit_active_activities; // Certifique-se que este campo existe no seu banco/plano
+    if (is_null($limit)) return true;
+
+    // Contamos quantas atividades 'active' ou 'in_progress' existem na instituição
+    $activeCount = Activity::whereHas('classroom', function($q) {
+        $q->where('institution_id', $this->id);
+    })->whereIn('status', ['active', 'in_progress'])->count();
+
+    return $activeCount < $limit;
+
         default:
             return true;
     }

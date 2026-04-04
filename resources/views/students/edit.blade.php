@@ -5,8 +5,8 @@
     ['name' => 'Secretaria de Alunos', 'url' => route('students.index')],
     ['name' => 'Editar Aluno', 'url' => '#']
 ]" />
-        <h2 class="text-xl font-semibold text-[#333333] leading-tight mt-2">
-            Editando Dados de: <span class="text-codeforce-green">{{ $student->name }}</span>
+        <h2 class="text-xl font-semibold text-secondary leading-tight mt-2">
+            Editando Dados de: <span class="text-primary">{{ $student->name }}</span>
         </h2>
     </x-slot>
 
@@ -21,7 +21,7 @@
                     
                     <!-- Seção 1: Acesso -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Dados de Acesso</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados de Acesso</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <x-input-label for="name" value="Nome Completo *" />
@@ -37,7 +37,7 @@
     <x-input-label for="password" value="Nova Senha Provisória" />
     <div x-data="{ show: false }" class="relative mt-1">
         <x-text-input x-bind:type="show ? 'text' : 'password'" type="password" id="password" name="password" class="block w-full pr-10" autocomplete="new-password" />
-        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-codeforce-green">
+        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-primary">
             <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" />
             </svg>
@@ -55,7 +55,7 @@
 
                     <!-- Seção 2: Pessoal -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Dados Pessoais</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados Pessoais</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="cpf" value="CPF" />
@@ -77,7 +77,7 @@
 
                     <!-- Seção 3: Responsável -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Dados do Responsável (Opcional)</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados do Responsável (Opcional)</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <x-input-label for="guardian_name" value="Nome do Responsável" />
@@ -94,7 +94,7 @@
 
                     <!-- Seção 4: Endereço -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Endereço</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Endereço</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="zip_code" value="CEP" />
@@ -138,7 +138,7 @@
 
                     <!-- Seção 5: Documentos -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Documentos (Anexos)</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Documentos (Anexos)</h3>
                         
                         @if($student->documents && count($student->documents) > 0)
                             <div class="mb-4">
@@ -146,7 +146,7 @@
                                 <ul class="list-disc list-inside space-y-1">
                                     @foreach($student->documents as $doc)
                                         <li class="text-sm">
-                                            <a href="{{ $doc['url'] }}" target="_blank" class="text-codeforce-green hover:underline">
+                                            <a href="{{ $doc['url'] }}" target="_blank" class="text-primary hover:underline">
                                                 {{ $doc['original_name'] ?? 'Documento Anexado' }}
                                             </a>
                                         </li>
@@ -158,7 +158,7 @@
                         <div class="grid grid-cols-1 gap-6">
                             <div>
                                 <x-input-label for="attachments" value="Anexar novos arquivos (PDF, JPG, PNG)" />
-                                <input type="file" name="attachments[]" id="attachments" multiple accept=".pdf,.jpg,.jpeg,.png" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-codeforce-green file:text-white hover:file:bg-[#008f7f] border border-gray-300 rounded-md transition cursor-pointer">
+                                <input type="file" name="attachments[]" id="attachments" multiple accept=".pdf,.jpg,.jpeg,.png" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:brightness-90 transition-all duration-200 border border-gray-300 rounded-md transition cursor-pointer">
                                 <p class="text-xs text-gray-500 mt-2">Você pode selecionar mais de um arquivo. Eles serão adicionados aos já existentes. O arquivo deve ter no máximo</p>
                                 
                                 @foreach($errors->get('attachments.*') as $errorArray)
@@ -175,7 +175,7 @@
                     </section>
 
                     <div class="pt-6 flex justify-end gap-4 border-t border-gray-200">
-                        <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-codeforce-green focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
+                        <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
                             Cancelar
                         </a>
                         <x-primary-button>

@@ -20,7 +20,7 @@
                 @else
                     <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&color=00ad9a&background=E5F7F5&rounded=true" alt="Avatar" class="h-16 w-16 rounded-full border border-gray-200">
                 @endif
-                <input type="file" id="avatar" name="avatar" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#00ad9a] file:text-white hover:file:bg-[#009688] transition cursor-pointer">
+                <input type="file" id="avatar" name="avatar" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-[#009688] transition cursor-pointer">
             </div>
             <x-input-error class="mt-2" :messages="$errors->get('avatar')" />
         </div>

@@ -15,6 +15,9 @@ class Activity extends Model
 
     protected $casts = [
         'coin_conversion_rate' => 'decimal:2',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'disabled_students' => 'array',
     ];
 
     public function classroom(): BelongsTo
@@ -31,4 +34,16 @@ class Activity extends Model
     {
         return $this->hasMany(Submission::class);
     }
+
+    public function getStatusLabelAttribute()
+{
+    return match ($this->status) {
+        'draft' => 'Rascunho',
+        'active' => 'Ativa',
+        'in_progress' => 'Em Andamento',
+        'closed' => 'Encerrada',
+        'canceled' => 'Cancelada',
+        default => $this->status,
+    };
+}
 }

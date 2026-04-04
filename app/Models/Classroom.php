@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+
 
 class Classroom extends Model
 {
@@ -17,12 +20,53 @@ class Classroom extends Model
     protected $casts = [
         'level_growth_factor' => 'decimal:2',
         'days_of_week' => 'array',
-    'start_date' => 'date',
+        'start_date' => 'date',
+        'skip_holidays' => 'boolean',
     ];
 
     public function institution(): BelongsTo
     {
         return $this->belongsTo(Institution::class);
+    }
+
+    public function generateLessons()
+    {
+        // Apaga aulas agendadas existentes para não duplicar se o professor editar a turma
+        $this->lessons()->where('status', 'scheduled')->delete();
+
+        $lessonsCreated = 0;
+        $currentDate = Carbon::parse($this->start_date);
+        
+        // Lista básica de feriados fixos (Exemplo Brasil)
+        $holidays = [
+            '01-01', '21-04', '01-05', '07-09', '12-10', '02-11', '15-11', '25-12'
+        ];
+
+        while ($lessonsCreated < $this->total_lessons) {
+            // Verifica se o dia da semana atual está nos dias escolhidos (0=Dom, 1=Seg...)
+            // Nota: O cast (string) garante compatibilidade com o JSON do banco
+            if (in_array((string)$currentDate->dayOfWeek, $this->days_of_week)) {
+                
+                $isHoliday = in_array($currentDate->format('d-m'), $holidays);
+
+                // Se não for feriado OU se o professor NÃO marcou para pular feriados
+                if (!$isHoliday || !$this->skip_holidays) {
+                    $this->lessons()->create([
+                        'title' => 'Aula Agendada',
+                        'date' => $currentDate->format('Y-m-d'),
+                        'start_time' => $this->start_time,
+                        'end_time' => $this->end_time,
+                        'status' => 'scheduled',
+                    ]);
+                    $lessonsCreated++;
+                }
+            }
+            
+            $currentDate->addDay();
+
+            // Segurança para não entrar em loop infinito se não houver dias selecionados
+            if ($currentDate->diffInYears($this->start_date) > 2) break;
+        }
     }
 
     public function teacher(): BelongsTo
@@ -40,45 +84,8 @@ class Classroom extends Model
         return $this->hasMany(Activity::class);
     }
 
-    public function generateLessons()
-{
-    // Limpa aulas futuras se for uma re-geração (opcional, cuidado aqui)
-    // $this->lessons()->where('status', 'scheduled')->delete();
-
-    $currentDate = \Carbon\Carbon::parse($this->start_date);
-    $lessonsCreated = 0;
-    $days = $this->days_of_week; // Ex: [1, 4] para Segunda e Quinta
-
-    while ($lessonsCreated < $this->total_lessons) {
-        // Se a frequência for semanal/quinzenal, verifica se o dia atual é um dos escolhidos
-        if (in_array($currentDate->dayOfWeek, $days)) {
-            
-            // Aqui entraria a lógica de pular feriados futuramente
-            // if ($this->skip_holidays && isHoliday($currentDate)) { $currentDate->addDay(); continue; }
-
-            $this->lessons()->create([
-                'date' => $currentDate->format('Y-m-d'),
-                'start_time' => $this->start_time,
-                'end_time' => $this->end_time,
-                'status' => 'scheduled'
-            ]);
-
-            $lessonsCreated++;
-        }
-
-        // Lógica de avanço da data
-        if ($this->frequency === 'daily') {
-            $currentDate->addDay();
-        } elseif ($this->frequency === 'biweekly' && $currentDate->dayOfWeek == end($days)) {
-             // Se for quinzenal e chegamos no último dia de aula da semana, pula 1 semana extra
-             $currentDate->addWeeks(1)->startOfWeek()->addDays(reset($days)); 
-        } else {
-            $currentDate->addDay();
-        }
-        
-        // Trava de segurança para não entrar em loop infinito
-        if ($lessonsCreated > 500) break; 
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class);
     }
-}
-
 }

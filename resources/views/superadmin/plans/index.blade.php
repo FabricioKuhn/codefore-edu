@@ -6,7 +6,7 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
         <p class="text-gray-500 text-sm font-medium">Gerencie os pacotes e limites de cada escola.</p>
-        <a href="{{ route('superadmin.plans.create') }}" class="bg-primary text-white px-5 py-2 rounded-md font-bold text-[11px] uppercase tracking-widest hover:bg-opacity-90 transition">
+        <a href="{{ route('superadmin.plans.create') }}" class="bg-primary text-white px-5 py-2 rounded-md font-bold text-[11px] uppercase tracking-widest transition-all duration-200 hover:brightness-90">
             Novo Plano
         </a>
     </div>
@@ -59,7 +59,7 @@
             <div class="flex gap-1">
                 <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded font-bold" title="Turmas">{{ $plan->limit_classes ?? '∞' }}</span>
                 <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded font-bold" title="Alunos/Turma">{{ $plan->limit_students_per_class ?? '∞' }}</span>
-                <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded font-bold" title="Missões">{{ $plan->limit_tasks_per_class ?? '∞' }}</span>
+                <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded font-bold" title="Atividades">{{ $plan->limit_tasks_per_class ?? '∞' }}</span>
             </div>
         </td>
 

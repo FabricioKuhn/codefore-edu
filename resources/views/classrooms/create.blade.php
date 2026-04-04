@@ -5,7 +5,7 @@
     ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
     ['name' => 'Nova Turma', 'url' => '#']
 ]" />
-        <h2 class="text-xl font-semibold text-[#333333] leading-tight">
+        <h2 class="text-xl font-semibold text-secondary leading-tight">
             {{ __('Nova Turma') }}
         </h2>
     </x-slot>
@@ -49,7 +49,7 @@
                     </div>
 
                     <section class="mt-8">
-    <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Calendário e Frequência</h3>
+    <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Calendário e Frequência</h3>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <div>
@@ -69,7 +69,7 @@
 
         <div>
             <x-input-label for="frequency" value="Frequência das Aulas" />
-            <select name="frequency" id="frequency" class="mt-1 block w-full border-gray-300 focus:border-[#00ad9a] focus:ring-[#00ad9a] rounded-md shadow-sm">
+            <select name="frequency" id="frequency" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm">
                 <option value="weekly">Semanal</option>
                 <option value="biweekly">Quinzenal</option>
                 <option value="daily">Diário (Seg a Sex)</option>
@@ -81,7 +81,7 @@
             <div class="flex flex-wrap gap-4 mt-3">
                 @foreach(['1'=>'Seg', '2'=>'Ter', '3'=>'Qua', '4'=>'Qui', '5'=>'Sex', '6'=>'Sáb', '0'=>'Dom'] as $val => $label)
                     <label class="inline-flex items-center">
-                        <input type="checkbox" name="days_of_week[]" value="{{ $val }}" class="rounded border-gray-300 text-[#00ad9a] shadow-sm focus:ring-[#00ad9a]">
+                        <input type="checkbox" name="days_of_week[]" value="{{ $val }}" class="rounded border-gray-300 text-primary shadow-sm focus:ring-primary">
                         <span class="ml-2 text-sm text-gray-600">{{ $label }}</span>
                     </label>
                 @endforeach
@@ -100,7 +100,7 @@
 
         <div class="flex items-center mt-6">
             <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" name="skip_holidays" value="1" checked class="rounded border-gray-300 text-[#00ad9a] shadow-sm focus:ring-[#00ad9a]">
+                <input type="checkbox" name="skip_holidays" value="1" checked class="rounded border-gray-300 text-primary shadow-sm focus:ring-primary">
                 <span class="ml-2 text-sm text-gray-600">Pular Feriados</span>
             </label>
         </div>
@@ -108,7 +108,7 @@
 </section>
 
                     <div class="flex items-center justify-end mt-4 text-right">
-                        <a href="{{ route('classrooms.index') }}" class="text-sm text-[#333333] hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-codeforce-green mr-4 font-semibold">
+                        <a href="{{ route('classrooms.index') }}" class="text-sm text-secondary hover:text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mr-4 font-semibold">
                             Cancelar
                         </a>
                         <x-primary-button>

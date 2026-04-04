@@ -5,7 +5,7 @@
         @foreach($links as $index => $link)
             <li class="inline-flex items-center">
                 @if(!$loop->last)
-                    <a href="{{ $link['url'] }}" class="inline-flex items-center hover:text-[#00ad9a] transition-colors text-[#333333]">
+                    <a href="{{ $link['url'] }}" class="inline-flex items-center hover:text-primary transition-colors text-secondary">
                         {{ $link['name'] }}
                     </a>
                     <svg class="w-3 h-3 text-gray-400 mx-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">

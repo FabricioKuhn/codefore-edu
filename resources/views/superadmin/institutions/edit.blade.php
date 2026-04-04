@@ -5,14 +5,14 @@
     {{-- Breadcrumb --}}
     <nav class="flex text-gray-500 text-sm mb-4">
         <ol class="inline-flex items-center space-x-1">
-            <li><a href="{{ route('superadmin.institutions.index') }}" class="hover:text-[#00ad9a]">Instituições</a></li>
+            <li><a href="{{ route('superadmin.institutions.index') }}" class="hover:text-primary">Instituições</a></li>
             <li><span class="mx-2 text-gray-400">/</span></li>
-            <li class="text-[#333333] font-bold">Editar Instituição</li>
+            <li class="text-secondary font-bold">Editar Instituição</li>
         </ol>
     </nav>
 
     <div class="flex justify-between items-center mb-6">
-        <h2 class="font-bold text-2xl text-[#333333]">Editar: {{ $institution->trading_name }}</h2>
+        <h2 class="font-bold text-2xl text-secondary">Editar: {{ $institution->trading_name }}</h2>
     </div>
 
     <form action="{{ route('superadmin.institutions.update', $institution) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -21,17 +21,17 @@
 
         {{-- CARD 1: DADOS FISCAIS --}}
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <h3 class="text-sm font-bold text-[#00ad9a] uppercase mb-4 border-b pb-2">Dados Fiscais</h3>
+            <h3 class="text-sm font-bold text-primary uppercase mb-4 border-b pb-2">Dados Fiscais</h3>
             <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-12 md:col-span-8">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Nome Fantasia</label>
-                    <input type="text" name="trading_name" value="{{ $institution->trading_name }}" class="w-full border-gray-300 rounded-md focus:border-[#00ad9a] focus:ring-0 text-sm mt-1">
+                    <input type="text" name="trading_name" value="{{ $institution->trading_name }}" class="w-full border-gray-300 rounded-md focus:border-primary focus:ring-0 text-sm mt-1">
                 </div>
                 {{-- NOVO CAMPO DE DOMÍNIO --}}
     <div class="col-span-12 md:col-span-4">
-        <label class="text-[11px] font-bold text-[#00ad9a] uppercase">Domínio de Acesso (URL)</label>
+        <label class="text-[11px] font-bold text-primary uppercase">Domínio de Acesso (URL)</label>
         <input type="text" name="domain" value="{{ $institution->domain }}" placeholder="ex: cliente.local" 
-               class="w-full border-[#00ad9a] rounded-md focus:ring-0 text-sm mt-1 bg-green-50/30">
+               class="w-full border-primary rounded-md focus:ring-0 text-sm mt-1 bg-green-50/30">
     </div>
                 <div class="col-span-12 md:col-span-4">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">CNPJ*</label>
@@ -62,7 +62,7 @@
 
         {{-- CARD 2: ENDEREÇO E CONTATO --}}
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <h3 class="text-sm font-bold text-[#00ad9a] uppercase mb-4 border-b pb-2">Contato e Endereço</h3>
+            <h3 class="text-sm font-bold text-primary uppercase mb-4 border-b pb-2">Contato e Endereço</h3>
             <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-12 md:col-span-7">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">E-mail</label>
@@ -103,8 +103,8 @@
         </div>
 
         {{-- CARD 3: WHITE LABEL --}}
-        <div class="bg-[#333333] p-6 rounded-lg shadow-sm text-white">
-            <h3 class="text-sm font-bold text-[#00ad9a] uppercase mb-4 border-b border-gray-700 pb-2">Identidade Visual White Label</h3>
+        <div class="bg-secondary p-6 rounded-lg shadow-sm text-white">
+            <h3 class="text-sm font-bold text-primary uppercase mb-4 border-b border-gray-700 pb-2">Identidade Visual White Label</h3>
             <div class="grid grid-cols-12 gap-6">
                 <div class="col-span-12 md:col-span-4">
                     <label class="text-[11px] font-bold text-gray-400 uppercase">Cor Primária</label>
@@ -148,9 +148,9 @@
 
         <div class="flex justify-end gap-3 pt-4">
             <a href="{{ route('superadmin.institutions.index') }}" class="px-6 py-2 text-gray-500 font-bold hover:bg-gray-100 rounded-md transition">Cancelar</a>
-            <button type="submit" class="px-10 py-2 bg-[#00ad9a] text-white font-bold rounded-md hover:bg-[#009688] shadow-lg transition">
+            <x-primary-button>
                 Atualizar Instituição
-            </button>
+            </x-primary-button>
         </div>
     </form>
 </div>

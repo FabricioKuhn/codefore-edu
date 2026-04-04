@@ -7,8 +7,8 @@
     ['name' => $activity->title, 'url' => '#']
 ]" />
         <div class="flex justify-between items-center" x-data>
-            <h2 class="text-xl font-semibold text-[#333333] leading-tight">
-                Missão: {{ $activity->title }}
+            <h2 class="text-xl font-semibold text-secondary leading-tight">
+                Atividade: {{ $activity->title }}
             </h2>
             <x-primary-button type="button" @click="$dispatch('open-create-modal')">Nova Questão</x-primary-button>
         </div>
@@ -18,72 +18,208 @@
         <div class="py-12" x-data="questionEngine()" @open-create-modal.window="openForCreate()">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if (session('success'))
-                <div class="mb-4 bg-green-100 border border-codeforce-green text-codeforce-green px-4 py-3 rounded relative" role="alert">
+                <div class="mb-4 bg-green-100 border border-codeforce-green text-primary px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ session('success') }}</span>
                 </div>
             @endif
 
-            <div class="mb-6 bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6 flex flex-col md:flex-row justify-between items-center">
-                <div>
-                    <h3 class="text-2xl font-bold text-[#333333]">{{ $activity->title }}</h3>
-                    <p class="text-gray-500 mt-2">{{ $activity->description ?? 'Sem descrição' }}</p>
-                </div>
-                <div class="mt-4 md:mt-0 text-center bg-gray-100 p-4 rounded-lg flex gap-6">
+            <div class="mb-6 bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
                     <div>
-                        <span class="text-sm uppercase text-gray-500 font-semibold tracking-wider">XP Base</span>
-                        <div class="text-2xl font-mono font-bold mt-1 text-codeforce-green">{{ $activity->base_xp }}</div>
+                        <h3 class="text-2xl font-bold text-secondary">{{ $activity->title }}</h3>
+                        <p class="text-gray-500 mt-2">{{ $activity->description ?? 'Sem descrição' }}</p>
                     </div>
-                    <div>
-                        <span class="text-sm uppercase text-gray-500 font-semibold tracking-wider">Status</span>
-                        <div class="text-xl font-bold mt-1 text-gray-700">{{ ucfirst($activity->status) }}</div>
+                    <div class="mt-4 lg:mt-0 flex flex-col sm:flex-row items-center gap-6">
+                        <div class="text-center bg-gray-100 p-4 rounded-lg flex flex-col gap-2 shadow-sm border border-gray-200">
+                            <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">XP Base</span>
+                            <div class="text-2xl font-mono font-black text-primary">{{ $activity->base_xp }}</div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Configurações Rápidas -->
+                <form action="{{ route('activities.update', $activity->id) }}" method="POST" class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap gap-4 items-end">
+                    @csrf @method('PUT')
+                    
+                    <div class="flex-1 min-w-[150px]">
+                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Status</label>
+                        <select name="status" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm font-bold text-gray-700">
+                            <option value="draft" {{ $activity->status == 'draft' ? 'selected' : '' }}>Rascunho</option>
+                            <option value="active" {{ $activity->status == 'active' ? 'selected' : '' }}>Ativa</option>
+                            <option value="closed" {{ $activity->status == 'closed' ? 'selected' : '' }}>Encerrada</option>
+                            <option value="canceled" {{ $activity->status == 'canceled' ? 'selected' : '' }}>Cancelada</option>
+                        </select>
+                    </div>
+
+                    <div class="flex-1 min-w-[180px]">
+                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Data Início</label>
+                        <input type="datetime-local" name="start_date" value="{{ $activity->start_date ? \Carbon\Carbon::parse($activity->start_date)->format('Y-m-d\TH:i') : '' }}" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm">
+                    </div>
+
+                    <div class="flex-1 min-w-[180px]">
+                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Data Término</label>
+                        <input type="datetime-local" name="end_date" value="{{ $activity->end_date ? \Carbon\Carbon::parse($activity->end_date)->format('Y-m-d\TH:i') : '' }}" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm">
+                    </div>
+
+                    <div class="flex-1 min-w-[120px]">
+                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Tempo (Min)</label>
+                        <input type="number" name="duration_minutes" value="{{ $activity->duration_minutes }}" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm" placeholder="Ilimitado">
+                    </div>
+
+                    <div class="flex-none flex items-center mb-1 px-2">
+                        <label class="relative inline-flex items-center cursor-pointer" title="Embaralhar Respostas das Questões">
+                            <input type="checkbox" name="shuffle_options" value="1" class="sr-only peer" {{ $activity->shuffle_options ? 'checked' : '' }}>
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                            <span class="ml-2 text-[10px] font-bold text-gray-700 uppercase tracking-widest leading-tight">Múltipla Escolha<br>Embaralhada</span>
+                        </label>
+                    </div>
+
+                    <div class="flex-none">
+                        <x-primary-button class="h-[42px] px-6">Salvar</x-primary-button>
+                    </div>
+                </form>
             </div>
 
             <div class="flex items-center justify-between mb-4 px-2">
-                <h3 class="text-xl font-bold text-[#333333]">Questões da Missão</h3>
+                <h3 class="text-xl font-bold text-secondary">Questões da Atividade</h3>
             </div>
             
-            <div class="space-y-4">
-                @forelse ($activity->questions as $index => $question)
-                    <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6 flex flex-col md:flex-row items-start md:items-center justify-between">
-                        <div class="flex-1 w-full">
-                            <h4 class="text-lg font-bold mb-1 text-[#333333]">Questão {{ $index + 1 }}</h4>
+            <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 overflow-x-auto mb-8">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">#</th>
+                            <th scope="col" class="px-6 py-3">Enunciado</th>
+                            <th scope="col" class="px-6 py-3 text-center">Tipo</th>
+                            <th scope="col" class="px-6 py-3 text-center">Peso</th>
+                            <th scope="col" class="px-6 py-3 text-center">Anexo</th>
+                            <th scope="col" class="px-6 py-3 text-center">Botão</th>
+                            <th scope="col" class="px-6 py-3 text-center">Respostas</th>
+                            <th scope="col" class="px-6 py-3 text-center">Status</th>
+                            <th scope="col" class="px-6 py-3 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($activity->questions as $index => $question)
+                        <tr class="bg-white border-b hover:bg-gray-50 transition {{ $question->status ? '' : 'opacity-60' }}">
+                            <td class="px-6 py-4 font-bold text-secondary">{{ $index + 1 }}</td>
+                            <td class="px-6 py-4 text-gray-900 font-medium" title="{{ $question->statement }}">
+                                {{ \Illuminate\Support\Str::limit($question->statement, 35) }}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                                    {{ $question->type === 'multiple_choice' ? 'Múltipla' : 'Descritiva' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-bold text-primary">{{ $question->weight }}</td>
+                            <td class="px-6 py-4 text-center">
+                                @php $hasImage = collect($question->attachments)->contains('type', 'image'); @endphp
+                                @if($hasImage)
+                                    <span class="text-green-600 font-bold">&#10003;</span>
+                                @else
+                                    <span class="text-gray-300">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @php $hasBtn = collect($question->attachments)->contains('type', 'link_button'); @endphp
+                                @if($hasBtn)
+                                    <span class="text-green-600 font-bold">&#10003;</span>
+                                @else
+                                    <span class="text-gray-300">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center text-xs font-semibold text-primary">
+                                {{ \App\Models\SubmissionAnswer::where('question_id', $question->id)->count() }} envios
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if($question->status)
+                                    <form action="{{ route('questions.update_status', $question->id) }}" method="POST">
+                                        @csrf @method('PUT')
+                                        <button type="submit" class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:brightness-90 transition" title="Desabilitar">Ativa</button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('questions.update_status', $question->id) }}" method="POST">
+                                        @csrf @method('PUT')
+                                        <button type="submit" class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:brightness-90 transition" title="Habilitar">Inativa</button>
+                                    </form>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <button type="button" @click.prevent="openForEdit({{ $question->toJson() }}, {{ $question->options->toJson() }})" class="text-white bg-primary px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm">Editar</button>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="px-6 py-8 text-center text-gray-500">Nenhuma questão cadastrada para esta atividade ainda.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
-                            @if($question->attachments)
-                                <div class="mb-4 mt-2 flex flex-wrap gap-3 items-center">
-                                    @foreach($question->attachments as $attachment)
-                                        @if($attachment['type'] === 'image')
-                                            <img src="{{ $attachment['url'] }}" 
-                                                class="w-20 h-20 object-cover rounded-md border border-gray-200 shadow-sm cursor-pointer hover:opacity-90 transition-opacity" 
-                                                @click="lightboxImg = '{{ $attachment['url'] }}'; lightboxOpen = true" 
-                                                alt="Anexo da questão">
-                                                
-                                        @elseif($attachment['type'] === 'link_button')
-                                            <a href="{{ $attachment['url'] }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-[#333333] uppercase tracking-widest shadow-sm hover:bg-gray-50">
-                                                {{ $attachment['text'] }}
-                                            </a>
-                                        @endif
-                                    @endforeach
-                                </div>  
-                            @endif
-
-                            <p class="text-gray-700 mb-2">{{ $question->statement }}</p>
-                            
-                            <div class="flex items-center gap-4 text-sm mt-3">
-                                <span class="bg-gray-100 text-codeforce-gray font-semibold px-2 py-1 rounded">Tipo: {{ $question->type === 'multiple_choice' ? 'Múltipla Escolha' : 'Descritiva' }}</span>
-                                <span class="bg-teal-100 text-codeforce-green font-semibold px-2 py-1 rounded">Peso: {{ $question->weight }}</span>
-                            </div>
-                        </div>
-                        <div class="mt-4 md:mt-0 md:ml-6 flex-shrink-0">
-                             <a href="#" @click.prevent="openForEdit({{ $question->toJson() }}, {{ $question->options->toJson() }})" class="text-codeforce-green hover:text-[#008f7f] font-semibold text-sm">Editar</a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="bg-white shadow-sm sm:rounded-lg p-6 text-center text-gray-500 border border-gray-100">
-                        Nenhuma questão cadastrada para esta missão ainda.
-                    </div>
-                @endforelse
+            <div class="flex items-center justify-between mb-4 px-2 mt-10">
+                <h3 class="text-xl font-bold text-secondary">Alunos Vinculados</h3>
+            </div>
+            
+            <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Matrícula</th>
+                            <th scope="col" class="px-6 py-3">Nome</th>
+                            <th scope="col" class="px-6 py-3 text-center">Respondeu</th>
+                            <th scope="col" class="px-6 py-3 text-center">Nota</th>
+                            <th scope="col" class="px-6 py-3 text-center">Prazo</th>
+                            <th scope="col" class="px-6 py-3 text-center">Status</th>
+                            <th scope="col" class="px-6 py-3 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $disabledStudents = is_array($activity->disabled_students) ? $activity->disabled_students : json_decode($activity->disabled_students, true) ?? [];
+                        @endphp
+                        @forelse($activity->classroom->students ?? [] as $student)
+                        @php
+                            $isDisabled = in_array($student->id, $disabledStudents);
+                        @endphp
+                        <tr class="bg-white border-b hover:bg-gray-50 transition {{ $isDisabled ? 'opacity-50' : '' }}">
+                            <td class="px-6 py-4 text-secondary font-mono">{{ str_pad($student->id, 5, '0', STR_PAD_LEFT) }}</td>
+                            <td class="px-6 py-4 font-bold text-gray-900 {{ $isDisabled ? 'line-through text-gray-400' : '' }}">{{ $student->name }}</td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded shadow-sm text-[10px] uppercase font-bold">Não</span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-bold text-primary">-</td>
+                            <td class="px-6 py-4 text-center">{{ $activity->end_date ? \Carbon\Carbon::parse($activity->end_date)->format('d/m/Y') : 'Sem Prazo' }}</td>
+                            <td class="px-6 py-4 text-center">
+                                @if($isDisabled)
+                                    <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Desabilitado</span>
+                                @else
+                                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Habilitado</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center flex justify-center gap-2">
+                                <button type="button" class="text-white bg-primary px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Avaliar">Avaliar</button>
+                                <button type="button" class="text-white bg-blue-500 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Prorrogar Prazo">Prazo</button>
+                                @if($isDisabled)
+                                    <form action="{{ route('activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-white bg-green-600 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Habilitar">Habilitar</button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-white bg-red-500 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Desabilitar">Ocultar</button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-500">Nenhum aluno vinculado a esta turma.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -112,12 +248,12 @@
                         </template>
 
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                            <h3 class="text-lg leading-6 font-medium text-[#333333] mb-4" id="modal-title" x-text="method === 'POST' ? 'Nova Questão' : 'Editar Questão'"></h3>
+                            <h3 class="text-lg leading-6 font-medium text-secondary mb-4" id="modal-title" x-text="method === 'POST' ? 'Nova Questão' : 'Editar Questão'"></h3>
 
                             <!-- Tipo da Questão -->
                             <div class="mb-4">
                                 <x-input-label for="type" value="Tipo de Questão" />
-                                <select id="type" name="type" x-model="form.type" class="block mt-1 w-full border-gray-300 focus:border-codeforce-green focus:ring-codeforce-green rounded-md shadow-sm text-sm">
+                                <select id="type" name="type" x-model="form.type" class="block mt-1 w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm">
                                     <option value="multiple_choice">Múltipla Escolha</option>
                                     <option value="descriptive">Descritiva (Correção por IA)</option>
                                 </select>
@@ -170,7 +306,7 @@
                             <div class="mb-4">
                                 <x-input-label for="statement" value="Enunciado" />
                                 <!-- Removed native required so browser won't silently block -->
-                                <textarea id="statement" name="statement" x-model="form.statement" class="block mt-1 w-full border-gray-300 focus:border-codeforce-green focus:ring-codeforce-green rounded-md shadow-sm" rows="3"></textarea>
+                                <textarea id="statement" name="statement" x-model="form.statement" class="block mt-1 w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" rows="3"></textarea>
                                 <x-input-error :messages="$errors->get('statement')" class="mt-2" />
                             </div>
 
@@ -184,11 +320,11 @@
 
                             <!-- Bloco Múltipla Escolha -->
                             <div x-show="form.type === 'multiple_choice'" class="mt-4 border border-gray-200 rounded-md p-4 bg-gray-50">
-                                <h4 class="font-bold text-[#333333] mb-4">Alternativas (Marque a correta)</h4>
+                                <h4 class="font-bold text-secondary mb-4">Alternativas (Marque a correta)</h4>
                                 
                                 <template x-for="(opt, index) in [0, 1, 2, 3]" :key="index">
                                     <div class="flex items-center gap-4 mb-3">
-                                        <input type="radio" name="correct_option" :value="index" x-model="form.correct_option" class="h-4 w-4 text-codeforce-green focus:ring-codeforce-green border-gray-300">
+                                        <input type="radio" name="correct_option" :value="index" x-model="form.correct_option" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
                                         <x-text-input class="block w-full" type="text" x-bind:name="'options['+index+']'" x-model="form.options[index]" placeholder="Alternativa" />
                                     </div>
                                 </template>
@@ -200,7 +336,7 @@
                             <div x-cloak x-show="form.type === 'descriptive'" class="mt-4 border border-gray-200 rounded-md p-4 bg-gray-50">
                                 <x-input-label for="expected_answer" value="Gabarito Esperado (Para a IA Corrigir)" />
                                 <!-- Removed native required -->
-                                <textarea id="expected_answer" name="expected_answer" x-model="form.expected_answer" class="block mt-1 w-full border-gray-300 focus:border-codeforce-green focus:ring-codeforce-green rounded-md shadow-sm" rows="4"></textarea>
+                                <textarea id="expected_answer" name="expected_answer" x-model="form.expected_answer" class="block mt-1 w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" rows="4"></textarea>
                                 <p class="text-xs text-gray-500 mt-1">Este texto será base para testes IA.</p>
                                 <x-input-error :messages="$errors->get('expected_answer')" class="mt-2" />
                             </div>
@@ -210,7 +346,7 @@
                             <x-primary-button class="w-full sm:ml-3 sm:w-auto">
                                 Salvar Questão
                             </x-primary-button>
-                            <button type="button" @click="openModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-codeforce-green sm:mt-0 sm:ml-3 sm:max-w-4xl w-full sm:text-sm">
+                            <button type="button" @click="openModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:max-w-4xl w-full sm:text-sm">
                                 Cancelar
                             </button>
                         </div>

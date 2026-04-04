@@ -5,8 +5,8 @@
             ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
             ['name' => 'Editar Turma', 'url' => '#']
         ]" />
-        <h2 class="text-xl font-semibold text-[#333333] leading-tight mt-2">
-            Editando Turma: <span class="text-[#00ad9a]">{{ $classroom->name }}</span>
+        <h2 class="text-xl font-semibold text-secondary leading-tight mt-2">
+            Editando Turma: <span class="text-primary">{{ $classroom->name }}</span>
         </h2>
     </x-slot>
 
@@ -20,7 +20,7 @@
                 <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-8 space-y-8">
                     
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Dados da Turma</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados da Turma</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             
                             <div>
@@ -39,7 +39,7 @@
                     </section>
 
                     <section class="mt-8">
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Calendário e Frequência</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Calendário e Frequência</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             
                             <div>
@@ -59,7 +59,7 @@
 
                             <div>
                                 <x-input-label for="frequency" value="Frequência das Aulas" />
-                                <select name="frequency" id="frequency" class="mt-1 block w-full border-gray-300 focus:border-[#00ad9a] focus:ring-[#00ad9a] rounded-md shadow-sm">
+                                <select name="frequency" id="frequency" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm">
                                     <option value="weekly" {{ old('frequency', $classroom->frequency ?? '') == 'weekly' ? 'selected' : '' }}>Semanal</option>
                                     <option value="biweekly" {{ old('frequency', $classroom->frequency ?? '') == 'biweekly' ? 'selected' : '' }}>Quinzenal</option>
                                     <option value="daily" {{ old('frequency', $classroom->frequency ?? '') == 'daily' ? 'selected' : '' }}>Diário (Seg a Sex)</option>
@@ -74,7 +74,7 @@
                                         <label class="inline-flex items-center">
                                             <input type="checkbox" name="days_of_week[]" value="{{ $val }}" 
                                                 {{ in_array($val, (array) $selectedDays) ? 'checked' : '' }}
-                                                class="rounded border-gray-300 text-[#00ad9a] shadow-sm focus:ring-[#00ad9a]">
+                                                class="rounded border-gray-300 text-primary shadow-sm focus:ring-primary">
                                             <span class="ml-2 text-sm text-gray-600">{{ $label }}</span>
                                         </label>
                                     @endforeach
@@ -93,7 +93,7 @@
 
                             <div class="flex items-center mt-6">
                                 <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="skip_holidays" value="1" {{ old('skip_holidays', $classroom->skip_holidays ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-[#00ad9a] shadow-sm focus:ring-[#00ad9a]">
+                                    <input type="checkbox" name="skip_holidays" value="1" {{ old('skip_holidays', $classroom->skip_holidays ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-primary shadow-sm focus:ring-primary">
                                     <span class="ml-2 text-sm text-gray-600">Pular Feriados</span>
                                 </label>
                             </div>
@@ -101,7 +101,7 @@
                     </section>
 
                     <div class="pt-6 flex justify-end gap-4 border-t border-gray-200">
-                        <a href="{{ route('classrooms.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00ad9a] focus:ring-offset-2 transition ease-in-out duration-150">
+                        <a href="{{ route('classrooms.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition ease-in-out duration-150">
                             Cancelar
                         </a>
                         <x-primary-button>

@@ -21,8 +21,13 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('classrooms', \App\Http\Controllers\ClassroomController::class);
-    Route::resource('classrooms.activities', \App\Http\Controllers\ActivityController::class)->shallow();
+    Route::resource('activities', \App\Http\Controllers\ActivityController::class);
+    Route::post('lessons/{lesson}/attendance', [\App\Http\Controllers\LessonController::class, 'storeAttendance'])->name('lessons.attendance.store');
+    Route::post('lessons/{lesson}/cancel', [\App\Http\Controllers\LessonController::class, 'cancel'])->name('lessons.cancel');
+    Route::post('lessons/{lesson}/register', [\App\Http\Controllers\LessonController::class, 'register'])->name('lessons.register');
     Route::resource('activities.questions', \App\Http\Controllers\QuestionController::class)->shallow()->except(['create']);
+    Route::put('questions/{question}/status', [\App\Http\Controllers\QuestionController::class, 'updateStatus'])->name('questions.update_status');
+    Route::post('activities/{activity}/students/{student}/toggle', [\App\Http\Controllers\ActivityController::class, 'toggleStudent'])->name('activities.students.toggle');
     
     Route::post('classrooms/{classroom}/students', [\App\Http\Controllers\ClassroomStudentController::class, 'store'])->name('classrooms.students.store');
     Route::get('student/classrooms/{classroom}', [\App\Http\Controllers\StudentClassroomController::class, 'show'])->name('student.classrooms.show');

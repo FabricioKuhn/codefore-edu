@@ -125,4 +125,15 @@ class QuestionController extends Controller
             }
         }
     }
+
+    public function updateStatus(Question $question)
+    {
+        if ($question->activity->classroom->teacher_id !== request()->user()->id) {
+            abort(403);
+        }
+
+        $question->update(['status' => !$question->status]);
+
+        return back()->with('success', 'Status da questão atualizado com sucesso!');
+    }
 }

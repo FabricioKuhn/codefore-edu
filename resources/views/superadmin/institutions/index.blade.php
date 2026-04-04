@@ -5,16 +5,16 @@
     {{-- 1. BREADCRUMB --}}
     <nav class="flex text-gray-500 text-sm mb-4">
         <ol class="inline-flex items-center space-x-1">
-            <li><a href="{{ route('superadmin.dashboard') }}" class="hover:text-[#00ad9a]">Home</a></li>
+            <li><a href="{{ route('superadmin.dashboard') }}" class="hover:text-primary">Home</a></li>
             <li><span class="mx-2 text-gray-400">/</span></li>
-            <li class="text-[#333333] font-bold">Instituições</li>
+            <li class="text-secondary font-bold">Instituições</li>
         </ol>
     </nav>
 
     {{-- 2. HEADER --}}
     <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <h2 class="font-semibold text-xl text-[#333333] leading-tight">Gestão de Instituições</h2>
-        <a href="{{ route('superadmin.institutions.create') }}" class="inline-flex items-center px-4 py-2 bg-[#00ad9a] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#009688] transition shadow-md">
+        <h2 class="font-semibold text-xl text-secondary leading-tight">Gestão de Instituições</h2>
+        <a href="{{ route('superadmin.institutions.create') }}" class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest  shadow-md transition">
             + Novo Cadastro
         </a>
     </div>
@@ -23,8 +23,8 @@
     <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <form method="GET" action="{{ route('superadmin.institutions.index') }}" class="w-full md:w-1/3 flex">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por nome ou CNPJ..." 
-                class="w-full rounded-l-md border-gray-300 border-r-0 focus:ring-0 focus:border-[#00ad9a]" />
-            <button type="submit" class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-r-md text-[#333333] hover:bg-gray-300 font-semibold transition">
+                class="w-full rounded-l-md border-gray-300 border-r-0 focus:ring-0 focus:border-primary" />
+            <button type="submit" class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-r-md text-secondary hover:bg-gray-300 font-semibold transition">
                 Filtrar
             </button>
         </form>
@@ -34,7 +34,7 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-gray-500">
-                <thead class="text-xs text-[#333333] uppercase bg-gray-50 border-b">
+                <thead class="text-xs text-secondary uppercase bg-gray-50 border-b">
                     <tr>
                         <th scope="col" class="px-6 py-3">ID</th>
                         <th scope="col" class="px-6 py-3">Nome</th>
@@ -57,7 +57,7 @@
 
                             {{-- NOME --}}
                             <td class="px-6 py-4">
-                                <div class="font-bold text-[#333333]">{{ $inst->trading_name ?? '—' }}</div>
+                                <div class="font-bold text-secondary">{{ $inst->trading_name ?? '—' }}</div>
                                 <div class="text-[10px] text-gray-400 uppercase">{{ $inst->company_name ?? '—' }}</div>
                             </td>
 
@@ -82,7 +82,7 @@
                             </td>
 
                             {{-- ALUNOS --}}
-                            <td class="px-6 py-4 text-center font-bold text-[#333333]">
+                            <td class="px-6 py-4 text-center font-bold text-secondary">
                                 {{ $inst->active_students ?? 0 }}
                             </td>
 
@@ -97,7 +97,7 @@
 
                             {{-- AÇÕES --}}
                             <td class="px-6 py-4 text-right flex justify-end gap-3">
-                                <a href="{{ route('superadmin.institutions.edit', $inst) }}" class="text-[#00ad9a] font-bold hover:underline">
+                                <a href="{{ route('superadmin.institutions.edit', $inst) }}" class="text-primary font-bold hover:underline">
         Editar
     </a>
 

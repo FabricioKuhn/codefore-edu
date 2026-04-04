@@ -109,11 +109,19 @@ class ClassroomController extends Controller
 
     public function show(Classroom $classroom)
     {
-        // Proteção: Só o professor da turma pode ver
-        if ($classroom->teacher_id !== request()->user()->id) {
+        if ($classroom->teacher_id !== auth()->id()) {
             abort(403);
         }
-        $classroom->load('activities');
+
+        // Carregamos os alunos, as aulas (ordenadas) e as atividades
+        $classroom->load([
+            'students',
+            'lessons' => function ($query) {
+                $query->orderBy('date', 'asc')->orderBy('start_time', 'asc')->with('attendances');
+            },
+            'activities'
+        ]);
+
         return view('classrooms.show', compact('classroom'));
     }
 
@@ -143,8 +151,11 @@ class ClassroomController extends Controller
 
         $classroom->update($validated);
 
+        // Regenera as aulas se houver mudanças no cronograma
+        $classroom->generateLessons();
+
         return redirect()->route('classrooms.index')
-                         ->with('success', 'Turma atualizada com sucesso!');
+                         ->with('success', 'Turma atualizada e cronograma regenerado com sucesso!');
     }
 
     public function destroy(Classroom $classroom)

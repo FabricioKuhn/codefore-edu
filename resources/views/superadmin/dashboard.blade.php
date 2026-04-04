@@ -31,7 +31,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Ações Rápidas</h3>
         <div class="flex space-x-4">
-            <a href="{{ route('superadmin.institutions.create') }}" class="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium transition-colors">
+            <a href="{{ route('superadmin.institutions.create') }}" class="px-4 py-2 bg-emerald-500 text-white rounded-lg  font-medium transition-colors">
                 + Novo Cliente
             </a>
             <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">

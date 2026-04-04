@@ -5,7 +5,7 @@
     ['name' => 'Secretaria de Alunos', 'url' => route('students.index')],
     ['name' => 'Cadastrar Aluno', 'url' => '#']
 ]" />
-        <h2 class="text-xl font-semibold text-[#333333] leading-tight mt-2">
+        <h2 class="text-xl font-semibold text-secondary leading-tight mt-2">
             Cadastrar Novo Aluno
         </h2>
     </x-slot>
@@ -20,7 +20,7 @@
                     
                     <!-- Seção 1: Acesso -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Dados de Acesso</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados de Acesso</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <x-input-label for="name" value="Nome Completo *" />
@@ -42,7 +42,7 @@
 
                     <!-- Seção 2: Pessoal -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Dados Pessoais</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados Pessoais</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="cpf" value="CPF" />
@@ -64,7 +64,7 @@
 
                     <!-- Seção 3: Responsável -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Dados do Responsável (Opcional)</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados do Responsável (Opcional)</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <x-input-label for="guardian_name" value="Nome do Responsável" />
@@ -81,7 +81,7 @@
 
                     <!-- Seção 4: Endereço -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Endereço</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Endereço</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="zip_code" value="CEP" />
@@ -118,11 +118,11 @@
 
                     <!-- Seção 5: Documentos -->
                     <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-[#333333]">Documentos (Anexos)</h3>
+                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Documentos (Anexos)</h3>
                         <div class="grid grid-cols-1 gap-6">
                             <div>
                                 <x-input-label for="attachments" value="Selecione múltiplos arquivos (PDF, JPG, PNG)" />
-                                <input type="file" name="attachments[]" id="attachments" multiple accept=".pdf,.jpg,.jpeg,.png" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-codeforce-green file:text-white hover:file:bg-[#008f7f] border border-gray-300 rounded-md transition cursor-pointer">
+                                <input type="file" name="attachments[]" id="attachments" multiple accept=".pdf,.jpg,.jpeg,.png" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:brightness-90 transition-all duration-200 border border-gray-300 rounded-md transition cursor-pointer">
                                 <p class="text-xs text-gray-500 mt-2">Você pode selecionar mais de um arquivo de uma vez (Max: 10MB por arquivo).</p>
                                 <x-input-error :messages="$errors->get('attachments.*')" class="mt-2" />
                             </div>
@@ -130,7 +130,7 @@
                     </section>
 
                     <div class="pt-6 flex justify-end gap-4 border-t border-gray-200">
-                        <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-codeforce-green focus:ring-offset-2 disabled:opacity-25 transition">
+                        <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-25 transition">
                             Cancelar
                         </a>
                         <x-primary-button>

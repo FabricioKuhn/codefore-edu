@@ -47,7 +47,7 @@
                         $limits = [
                             'limit_classes' => 'Qtd. de Turmas',
                             'limit_students_per_class' => 'Alunos por Turma',
-                            'limit_tasks_per_class' => 'Missões por Turma'
+                            'limit_tasks_per_class' => 'Atividades por Turma'
                         ];
                     @endphp
 
