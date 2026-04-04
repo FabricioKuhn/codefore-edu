@@ -12,8 +12,9 @@ export default {
     theme: {
         extend: {
             colors: {
-                'codeforce-green': '#00ad9a',
-                'codeforce-gray': '#333333',
+                'primary': 'var(--primary-color)',
+                'secondary': 'var(--secondary-color)',
+                'tertiary': 'var(--tertiary-color)',
             },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],

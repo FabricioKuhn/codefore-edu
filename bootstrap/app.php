@@ -10,9 +10,18 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
+    ->withMiddleware(function (Middleware $middleware) {
+        
+        // AQUI ESTÁ A SOLUÇÃO:
+        $middleware->alias([
+            'is_superadmin' => \App\Http\Middleware\IsSuperAdmin::class,
+        ]);
+
+        // Se você tiver outros middlewares globais, eles continuam aqui
+        $middleware->web(append: [
+            \App\Http\Middleware\TenantMiddleware::class,
+        ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

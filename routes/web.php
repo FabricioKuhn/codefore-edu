@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuperAdmin\PlanController;
 use App\Http\Controllers\SuperAdmin\InstitutionController;
 use App\Http\Middleware\IsSuperAdmin;
 
@@ -52,8 +53,29 @@ Route::middleware(['auth', IsSuperAdmin::class])->prefix('admin-codeforce')->nam
 
     // Gestão de Instituições / White Label
     Route::resource('institutions', \App\Http\Controllers\SuperAdmin\InstitutionController::class);
+
+    // Rota específica para alternar o status da instituição
+Route::patch('institutions/{institution}/toggle-status', [InstitutionController::class, 'toggleStatus'])->name('institutions.toggle-status');
+
+Route::resource('institutions', InstitutionController::class);
     
 });
+
+Route::middleware(['auth', 'is_superadmin']) // Seus middlewares de segurança
+    ->prefix('admin-codeforce')              // O prefixo da URL
+    ->name('superadmin.')                    // O prefixo do NOME da rota (Importante!)
+    ->group(function () {
+        
+        // Rota das Instituições que já funciona
+        Route::resource('institutions', InstitutionController::class);
+
+        // AQUI ESTÁ O QUE FALTA:
+        Route::resource('plans', PlanController::class);
+        
+        // Rota para o botão de Ativar/Inativar
+        Route::patch('plans/{plan}/toggle', [PlanController::class, 'toggleStatus'])->name('plans.toggle');
+        
+    });
 
 
 require __DIR__.'/auth.php';

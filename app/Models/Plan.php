@@ -1,27 +1,34 @@
+<?php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Plan extends Model
 {
-    use HasFactory;
-
-    // Liberamos quais campos podem ser salvos direto no banco
     protected $fillable = [
         'name', 
-        'monthly_price', 
-        'annual_price',
-        'teacher_limit', 
-        'classroom_limit', 
-        'student_limit', 
-        'task_limit',
+        'slug', 
+        'price_monthly', 
+        'price_yearly', 
+        'is_free',
+        'limit_classes', 
+        'limit_students_per_class', 
+        'limit_tasks_per_class', 
         'is_active'
     ];
+
 
     // Relacionamento: 1 Plano tem Várias Assinaturas
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
     }
+
+    // app/Models/Plan.php
+
+public function institutions()
+{
+    return $this->hasMany(Institution::class);
+}
 }

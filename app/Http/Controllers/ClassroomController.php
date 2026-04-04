@@ -8,10 +8,13 @@ use Illuminate\Support\Str;
 
 class ClassroomController extends Controller
 {
+    /**
+     * Listagem de turmas da instituição
+     */
     public function index(Request $request)
     {
         // Busca as turmas da instituição do usuário logado
-        $query = \App\Models\Classroom::where('institution_id', $request->user()->institution_id);
+        $query = Classroom::where('institution_id', $request->user()->institution_id);
 
         // Sistema de Filtro (Busca)
         if ($request->filled('search')) {
@@ -28,21 +31,41 @@ class ClassroomController extends Controller
         return view('classrooms.index', compact('classrooms'));
     }
 
+    /**
+     * Tela de criação de nova turma (Com trava de limite)
+     */
     public function create()
     {
+        $institution = auth()->user()->institution;
+
+        // 🛡️ TRAVA: Se o plano não permitir mais turmas, barra aqui.
+        if (!$institution->canCreate('classes')) {
+            return redirect()->route('classrooms.index')
+                ->with('error', '🚫 Limite de turmas atingido para o seu plano atual. Faça um upgrade para criar novas turmas!');
+        }
+
         return view('classrooms.create');
     }
 
+    /**
+     * Salvar a nova turma no banco (Com trava de segurança)
+     */
     public function store(Request $request)
     {
-        // 1. Validamos TUDO (Gamificação + Calendário)
+        $institution = $request->user()->institution;
+
+        // 🛡️ TRAVA: Segurança extra caso tentem burlar o formulário
+        if (!$institution->canCreate('classes')) {
+            return redirect()->route('classrooms.index')
+                ->with('error', '🚫 Operação negada: Limite de turmas excedido.');
+        }
+
+        // 1. Validamos os dados
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'subject' => 'required|string|max:255',
             'base_xp_level' => 'nullable|numeric',
             'level_growth_factor' => 'nullable|numeric',
-            
-            // Campos de Calendário
             'total_lessons' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'min_attendance_percent' => 'nullable|numeric',
@@ -52,25 +75,21 @@ class ClassroomController extends Controller
             'end_time' => 'nullable',
         ]);
 
-        // 2. Gerador do Código de Convite da Turma
-        $joinCode = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6));
-        while (\App\Models\Classroom::where('join_code', $joinCode)->exists()) {
-            $joinCode = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6));
+        // 2. Gerador do Código de Convite Único
+        $joinCode = Str::upper(Str::random(6));
+        while (Classroom::where('join_code', $joinCode)->exists()) {
+            $joinCode = Str::upper(Str::random(6));
         }
 
-        // 3. Cria a turma uma única vez, juntando todos os dados
-        $classroom = \App\Models\Classroom::create([
-            'institution_id' => $request->user()->institution_id,
+        // 3. Criação da Turma
+        $classroom = Classroom::create([
+            'institution_id' => $institution->id,
             'teacher_id' => $request->user()->id,
             'name' => $validated['name'],
             'subject' => $validated['subject'],
-            
-            // Dados de Gamificação
             'join_code' => $joinCode,
             'base_xp_level' => $validated['base_xp_level'] ?? 100,
             'level_growth_factor' => $validated['level_growth_factor'] ?? 1.20,
-            
-            // Dados do Calendário
             'total_lessons' => $validated['total_lessons'],
             'start_date' => $validated['start_date'],
             'min_attendance_percent' => $validated['min_attendance_percent'] ?? 70,
@@ -81,14 +100,16 @@ class ClassroomController extends Controller
             'skip_holidays' => $request->has('skip_holidays'),
         ]);
 
-        // 4. MÁGICA: Gera as aulas no banco de dados
+        // 4. Gera as aulas no calendário
         $classroom->generateLessons();
 
-        // 5. Redireciona de volta
-        return redirect()->route('classrooms.index')->with('success', 'Turma e Calendário criados com sucesso!');
+        return redirect()->route('classrooms.index')
+                         ->with('success', 'Turma e Calendário criados com sucesso!');
     }
+
     public function show(Classroom $classroom)
     {
+        // Proteção: Só o professor da turma pode ver
         if ($classroom->teacher_id !== request()->user()->id) {
             abort(403);
         }
@@ -106,7 +127,6 @@ class ClassroomController extends Controller
 
     public function update(Request $request, Classroom $classroom)
     {
-        // 1. Validamos todos os campos novos que vêm do formulário
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'subject' => 'required|string|max:255',
@@ -119,18 +139,12 @@ class ClassroomController extends Controller
             'end_time' => 'nullable',
         ]);
 
-        // 2. O checkbox envia "1" se marcado, ou NADA se desmarcado. Tratamos isso:
         $validated['skip_holidays'] = $request->has('skip_holidays');
 
-        // 3. Salvamos no banco
         $classroom->update($validated);
 
-        /* * NOTA: Neste momento, estamos apenas atualizando os dados da turma.
-         * Futuramente, se o professor mudar os dias no meio do curso, 
-         * precisaremos criar uma lógica para recalcular apenas as "aulas futuras" no calendário.
-         */
-
-        return redirect()->route('classrooms.index')->with('success', 'Turma atualizada com sucesso!');
+        return redirect()->route('classrooms.index')
+                         ->with('success', 'Turma atualizada com sucesso!');
     }
 
     public function destroy(Classroom $classroom)
@@ -141,6 +155,7 @@ class ClassroomController extends Controller
 
         $classroom->delete();
 
-        return redirect()->route('classrooms.index')->with('success', 'Turma removida com sucesso!');
+        return redirect()->route('classrooms.index')
+                         ->with('success', 'Turma removida com sucesso!');
     }
 }

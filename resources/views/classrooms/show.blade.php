@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">  
         <x-breadcrumbs :links="[
-    ['name' => 'Home', 'url' => route('dashboard')],
-    ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
-    ['name' => $classroom->name, 'url' => route('classrooms.show', $classroom)]
-]" />
+            ['name' => 'Home', 'url' => route('dashboard')],
+            ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
+            ['name' => $classroom->name, 'url' => route('classrooms.show', $classroom)]
+        ]" />
         <div class="flex justify-between items-center">
             <h2 class="text-xl font-semibold text-[#333333] leading-tight">
                 {{ $classroom->name }} - {{ $classroom->subject }}
@@ -17,124 +17,155 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            
+            {{-- Alertas de Sucesso/Erro --}}
             @if (session('success'))
-                <div class="mb-4 bg-green-100 border border-codeforce-green text-codeforce-green px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
+                <div class="mb-4 bg-green-100 border border-emerald-500 text-emerald-700 px-4 py-3 rounded-lg shadow-sm" role="alert">
+                    <span class="block sm:inline font-bold">{{ session('success') }}</span>
                 </div>
             @endif
 
+            @if (session('error'))
+                <div class="mb-4 bg-red-100 border border-red-500 text-red-700 px-4 py-3 rounded-lg shadow-sm" role="alert">
+                    <span class="block sm:inline font-bold">{{ session('error') }}</span>
+                </div>
+            @endif
+
+            {{-- Card de Informações da Turma --}}
             <div class="mb-6 bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6 flex flex-col md:flex-row justify-between items-center">
                 <div>
                     <h3 class="text-2xl font-bold text-[#333333]">{{ $classroom->name }}</h3>
                     <p class="text-gray-500">{{ $classroom->subject }}</p>
                 </div>
-                <div class="mt-4 md:mt-0 text-center bg-gray-100 p-4 rounded-lg">
+                <div class="mt-4 md:mt-0 text-center bg-gray-100 p-4 rounded-lg border border-gray-200">
                     <span class="text-sm uppercase text-gray-500 font-semibold tracking-wider">Código de Convite</span>
-                    <div class="text-3xl font-mono font-bold tracking-widest mt-1 text-codeforce-green">{{ $classroom->join_code }}</div>
+                    <div class="text-3xl font-mono font-bold tracking-widest mt-1 text-[#00ad9a]">{{ $classroom->join_code }}</div>
                 </div>
             </div>
 
+            {{-- Seção de Missões --}}
             <h3 class="text-xl font-bold text-[#333333] mb-4 px-2">Missões / Avaliações</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse ($classroom->activities as $activity)
-                    <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 border-t-4 border-t-codeforce-green p-6">
+                    <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 border-t-4 border-t-[#00ad9a] p-6 hover:shadow-md transition">
                         <h4 class="text-lg font-bold mb-2 text-[#333333]">{{ $activity->title }}</h4>
                         
                         <div class="mt-4 flex items-center gap-4 text-sm text-gray-600">
                             <span class="font-medium text-[#00ad9a]">XP Base: {{ $activity->base_xp }}</span>
-                            <span class="px-2 py-1 bg-gray-100 rounded-md">Status: {{ ucfirst($activity->status) }}</span>
+                            <span class="px-2 py-1 bg-gray-100 rounded-md text-[10px] font-bold uppercase">{{ $activity->status }}</span>
                         </div>
                         
                         <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                            <a href="{{ route('activities.show', $activity) }}" class="text-codeforce-green hover:text-[#008f7f] font-semibold text-sm">Gerenciar Missão &rarr;</a>
+                            <a href="{{ route('activities.show', $activity) }}" class="text-[#00ad9a] hover:underline font-semibold text-sm">Gerenciar Missão &rarr;</a>
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full bg-white shadow-sm sm:rounded-lg p-6 text-center text-gray-500 border border-gray-100">
-                        Nenhuma missão cadastrada nesta turma ainda. Comece criando a primeira!
+                    <div class="col-span-full bg-white shadow-sm sm:rounded-lg p-10 text-center text-gray-400 border border-dashed border-gray-300">
+                        Nenhuma missão cadastrada nesta turma ainda.
                     </div>
                 @endforelse
             </div>
-            <div class="mt-12 flex items-center justify-between mb-4 px-2" x-data>
+
+            {{-- Seção de Alunos --}}
+            <div class="mt-12 flex items-center justify-between mb-4 px-2">
                 <h3 class="text-xl font-bold text-[#333333]">Alunos Matriculados</h3>
-                <x-primary-button type="button" @click="$dispatch('open-student-modal')">Cadastrar Aluno</x-primary-button>
+                {{-- Gatilho do Modal via Alpine --}}
+                <x-primary-button type="button" @click="$dispatch('abrir-modal-aluno')">
+                    Cadastrar Aluno
+                </x-primary-button>
             </div>
             
-            <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6">
+            <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 overflow-hidden">
                 @if($classroom->students->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr>
-                                    <th class="border-b border-gray-200 py-3 px-4 text-sm font-semibold text-gray-600 uppercase">Nome</th>
-                                    <th class="border-b border-gray-200 py-3 px-4 text-sm font-semibold text-gray-600 uppercase">Email</th>
-                                    <th class="border-b border-gray-200 py-3 px-4 text-sm font-semibold text-gray-600 uppercase">Ações</th>
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="border-b border-gray-100 py-3 px-6 text-xs font-black text-gray-400 uppercase">Nome</th>
+                                <th class="border-b border-gray-100 py-3 px-6 text-xs font-black text-gray-400 uppercase">Email</th>
+                                <th class="border-b border-gray-100 py-3 px-6 text-xs font-black text-gray-400 uppercase text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @foreach($classroom->students as $student)
+                                <tr class="hover:bg-gray-50/50 transition">
+                                    <td class="py-4 px-6 text-[#333333] font-bold text-sm">{{ $student->name }}</td>
+                                    <td class="py-4 px-6 text-gray-500 text-sm">{{ $student->email }}</td>
+                                    <td class="py-4 px-6 text-right">
+                                        <button class="text-gray-300 hover:text-red-500 transition">
+                                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($classroom->students as $student)
-                                    <tr class="hover:bg-gray-50 border-b border-gray-50 last:border-b-0">
-                                        <td class="py-3 px-4 text-[#333333] font-medium">{{ $student->name }}</td>
-                                        <td class="py-3 px-4 text-gray-500">{{ $student->email }}</td>
-                                        <td class="py-3 px-4">
-                                            <a href="#" class="text-gray-400 hover:text-red-500 text-sm font-semibold transition" onclick="alert('Funcionalidade de remover no futuro')">Remover</a>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            @endforeach
+                        </tbody>
+                    </table>
                 @else
-                    <div class="text-center text-gray-500 py-4">
+                    <div class="text-center text-gray-400 py-10">
                         Nenhum aluno matriculado nesta turma ainda.
                     </div>
                 @endif
             </div>
+        </div>
 
-        </div> <!-- End of py-12 / max-w-7xl -->
-
-        <!-- Modal de Matrícula -->
-        <div x-data="{ openStudentModal: {{ $errors->has('email') ? 'true' : 'false' }} }" @open-student-modal.window="openStudentModal = true">
-            <div x-show="openStudentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                    <div x-show="openStudentModal" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="openStudentModal = false"></div>
-                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        {{-- MODAL DE MATRÍCULA (Alpine.js) --}}
+        <div x-data="{ open: {{ $errors->any() ? 'true' : 'false' }} }" 
+             @abrir-modal-aluno.window="open = true" 
+             x-cloak>
+            
+            {{-- Fundo e Container --}}
+            <div x-show="open" class="fixed inset-0 z-50 overflow-y-auto">
+                <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
                     
-                    <div x-show="openStudentModal" 
-                         x-transition:enter="ease-out duration-300"
+                    {{-- Backdrop --}}
+                    <div x-show="open" 
+                         x-transition.opacity 
+                         class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" 
+                         @click="open = false"></div>
+
+                    {{-- Card do Modal --}}
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-300"
                          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                          x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                         x-transition:leave="ease-in duration-200"
-                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                         class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle max-w-md w-full">
-                         
+                         x-transition:leave="transition ease-in duration-200"
+                         class="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                        
                         <form action="{{ route('classrooms.students.store', $classroom) }}" method="POST">
                             @csrf
-                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <h3 class="text-lg leading-6 font-medium text-[#333333] mb-4" id="modal-title">Cadastrar Novo Aluno</h3>
+                            <div class="bg-primary px-6 py-6">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-lg font-black text-secondary uppercase tracking-tight">Matricular Aluno</h3>
+                                    <button type="button" @click="open = false" class="text-gray-400 hover:text-gray-600">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                </div>
                                 
-                                <div class="mb-4">
-                                    <x-input-label for="name" value="Nome Completo" />
-                                    <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
-                                    <x-input-error :messages="$errors->get('name')" class="mt-2" />
-                                </div>
+                                <div class="space-y-4">
+                                    <div>
+                                        <x-input-label value="Nome Completo" class="text-[10px] font-black uppercase text-gray-400" />
+                                        <x-text-input name="name" class="block mt-1 w-full" :value="old('name')" required />
+                                        <x-input-error :messages="$errors->get('name')" class="mt-1" />
+                                    </div>
 
-                                <div class="mb-4">
-                                    <x-input-label for="email" value="Email" />
-                                    <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
-                                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                                </div>
+                                    <div>
+                                        <x-input-label value="E-mail do Aluno" class="text-[10px] font-black uppercase text-gray-400" />
+                                        <x-text-input type="email" name="email" class="block mt-1 w-full" :value="old('email')" required />
+                                        <x-input-error :messages="$errors->get('email')" class="mt-1" />
+                                    </div>
 
-                                <div class="mb-4">
-                                    <x-input-label for="password" value="Senha Provisória" />
-                                    <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required />
-                                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                                    <div>
+                                        <x-input-label value="Senha Provisória" class="text-[10px] font-black uppercase text-gray-400" />
+                                        <x-text-input type="password" name="password" class="block mt-1 w-full" required />
+                                        <x-input-error :messages="$errors->get('password')" class="mt-1" />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200">
-                                <x-primary-button class="w-full sm:ml-3 sm:w-auto">Matricular</x-primary-button>
-                                <button type="button" @click="openStudentModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-semibold text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancelar</button>
+
+                            <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-gray-100">
+                                <x-primary-button>Confirmar Matrícula</x-primary-button>
+                                <button type="button" @click="open = false" class="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest transition">
+                                    Cancelar
+                                </button>
                             </div>
                         </form>
                     </div>

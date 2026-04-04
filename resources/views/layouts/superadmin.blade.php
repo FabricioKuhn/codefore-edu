@@ -3,31 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Super Admin') - CodeForce</title>
+    <title>@yield('title', 'Painel Administrativo') - CodeForce</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @php
+    // 1. Tenta pegar o ícone da instituição (tenant)
+    // 2. Se não existir instituição ou não tiver ícone, usa o padrão da pasta public
+    $faviconUrl = (isset($tenant) && $tenant->flat_icon) 
+        ? asset('storage/' . $tenant->flat_icon) 
+        : asset('favicon-codeforce.png'); 
+@endphp
+
+<link rel="icon" type="image/png" href="{{ $faviconUrl }}">
+
+<style>
+        :root {
+            /* No SuperAdmin, forçamos as cores da CodeForce, 
+               independente de estar em um domínio de cliente ou não */
+            --primary-color: #00ad9a;
+            --secondary-color: #333333;
+            --tertiary-color: #ffffff;
+        }
+    </style>
+
 </head>
 <body class="bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
-    <aside class="w-64 bg-gray-900 text-white flex flex-col h-full">
-        <div class="h-16 flex items-center justify-center border-b border-gray-800">
+    <aside class="w-64 bg-secondary text-white flex flex-col h-full">
+        <div class="h-16 flex items-center justify-center border-b border-black">
             <a href="">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            <a href="{{ route('superadmin.dashboard') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors {{ request()->routeIs('superadmin.dashboard') ? 'bg-gray-800 border-l-4 border-emerald-500' : '' }}">
+            <a href="{{ route('superadmin.dashboard') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-black transition-colors {{ request()->routeIs('superadmin.dashboard') ? 'bg-black border-l-4 border-primary' : '' }}">
                 <span class="font-medium">Dashboard</span>
             </a>
             
-            <a href="{{ route('superadmin.institutions.index') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors {{ request()->routeIs('superadmin.institutions.*') ? 'bg-gray-800 border-l-4 border-emerald-500' : '' }}">
+            <a href="{{ route('superadmin.institutions.index') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-black transition-colors {{ request()->routeIs('superadmin.institutions.*') ? 'bg-black border-l-4 border-primary' : '' }}">
                 <span class="font-medium">Instituições (Escolas)</span>
             </a>
 
-            <a href="#" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors text-gray-400">
+            <a href="{{ route('superadmin.plans.index') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-black transition-colors {{ request()->routeIs('superadmin.plans.*') ? 'bg-black border-l-4 border-primary' : '' }}">
                 <span class="font-medium">Planos</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors text-gray-400">
+
+            <a href="#" class="flex items-center px-4 py-3 rounded-lg hover:bg-black transition-colors text-gray-400">
                 <span class="font-medium">Assinaturas</span>
             </a>
         </nav>

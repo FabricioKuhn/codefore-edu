@@ -24,4 +24,6 @@ class IsSuperAdmin
         // Se ele for super admin, deixa passar
         return $next($request);
     }
+
+    
 }

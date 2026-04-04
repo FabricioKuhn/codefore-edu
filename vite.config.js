@@ -8,4 +8,11 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    // ADICIONE ESSE BLOCO SERVER AQUI:
+    server: {
+        hmr: {
+            host: 'localhost',
+        },
+        cors: true, // Isso libera o acesso de domínios como escola-a.local
+    },
 });
