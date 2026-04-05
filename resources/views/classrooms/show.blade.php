@@ -6,7 +6,7 @@
             </h2>
             <div class="flex gap-2">
                  <x-primary-button @click="$dispatch('abrir-modal-aluno')">Matricular Aluno</x-primary-button>
-                 <a href="{{ route('activities.create', ['classroom_id' => $classroom->id]) }}">
+                 <a href="{{ route(auth()->user()->role . '.activities.create', ['classroom_id' => $classroom->id]) }}">
                     <x-primary-button>Nova Atividade</x-primary-button>
                  </a>
             </div>
@@ -37,13 +37,27 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
+                        @php
+                            $concludedLessonsCount = $classroom->lessons->where('status', 'recorded')->count();
+                            $totalLessonsCount = $classroom->lessons->count();
+                        @endphp
                         @foreach($classroom->students as $student)
+                        @php
+                            $presentCount = $classroom->lessons->map(function($l) use ($student) {
+                                return $l->attendances->where('user_id', $student->id)->where('status', 'present')->first();
+                            })->filter()->count();
+
+                            $frequency = $concludedLessonsCount > 0 ? round(($presentCount / $concludedLessonsCount) * 100) : 0;
+                        @endphp
                         <tr class="hover:bg-gray-50/50 transition">
                             <td class="px-6 py-4 font-bold text-sm text-secondary">{{ $student->name }}</td>
-                            <td class="px-6 py-4 text-xs font-bold text-gray-500">0 / {{ $classroom->lessons->count() }}</td>
+                            <td class="px-6 py-4 text-xs font-bold text-gray-500">{{ $presentCount }} / {{ $totalLessonsCount }}</td>
                             <td class="px-6 py-4">
-                                <div class="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
-                                    <div class="bg-primary h-full" style="width: 0%"></div>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="bg-primary h-full transition-all duration-500" style="width: {{ $frequency }}%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-black text-secondary whitespace-nowrap">{{ $frequency }}%</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-black text-xs text-primary">0 XP</td>
@@ -69,6 +83,7 @@
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Aula</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Data/Hora</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">Status</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">Presenças</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-right">Ações</th>
                         </tr>
                     </thead>
@@ -89,6 +104,11 @@
                                     $lesson->status === 'canceled' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700')
                                 }}">
                                     {{ $lesson->status_label }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="text-xs font-bold text-secondary">
+                                    {{ $lesson->attendances->where('status', 'present')->count() }} / {{ $classroom->students->count() }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
@@ -117,7 +137,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center">
                                 <p class="text-gray-400 font-bold text-sm">As aulas ainda não foram geradas para esta turma.</p>
                             </td>
                         </tr>
@@ -158,7 +178,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <a href="{{ route('activities.show', $activity) }}" class="text-primary font-black text-[10px] uppercase mr-3">Gerenciar</a>
+                                <a href="{{ route(auth()->user()->role . '.activities.show', $activity) }}" class="text-primary font-black text-[10px] uppercase mr-3">Gerenciar</a>
                                 <button class="text-red-400 font-black text-[10px] uppercase">Inativar</button>
                             </td>
                         </tr>
@@ -278,7 +298,7 @@
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" @click="open = false"></div>
                 <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
-                    <form action="{{ route('classrooms.students.store', $classroom) }}" method="POST">
+                    <form action="{{ route(auth()->user()->role . '.classrooms.students.store', $classroom) }}" method="POST">
                         @csrf
                         <div class="bg-primary px-6 py-4 border-b border-white/10">
                             <h3 class="text-lg font-black text-secondary uppercase tracking-tight">Matricular Aluno</h3>

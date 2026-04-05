@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
         <x-breadcrumbs :links="[
-            ['name' => 'Home', 'url' => route('dashboard')],
-            ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
+            ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')],
+            ['name' => 'Minhas Turmas', 'url' => route(auth()->user()->role . '.classrooms.index')],
             ['name' => 'Editar Turma', 'url' => '#']
         ]" />
         <h2 class="text-xl font-semibold text-secondary leading-tight mt-2">
@@ -14,7 +14,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-auth-session-status class="mb-4" :status="session('success')" />
 
-            <form action="{{ route('classrooms.update', $classroom) }}" method="POST">
+            <form action="{{ route(auth()->user()->role . '.classrooms.update', $classroom) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-8 space-y-8">
@@ -34,6 +34,18 @@
                                 <x-text-input id="subject" name="subject" type="text" class="mt-1 block w-full" :value="old('subject', $classroom->subject)" required />
                                 <x-input-error :messages="$errors->get('subject')" class="mt-2" />
                             </div>
+
+                            <div class="mt-4">
+    <x-input-label for="teacher_id" value="Professor Responsável" />
+    <select name="teacher_id" id="teacher_id" class="w-full border-gray-300 rounded-xl shadow-sm focus:border-primary focus:ring-primary">
+        <option value="">Selecione um professor</option>
+        @foreach($teachers as $teacher)
+            <option value="{{ $teacher->id }}" {{ (isset($classroom) && $classroom->teacher_id == $teacher->id) ? 'selected' : '' }}>
+                {{ $teacher->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
                         </div>
                     </section>
@@ -101,7 +113,7 @@
                     </section>
 
                     <div class="pt-6 flex justify-end gap-4 border-t border-gray-200">
-                        <a href="{{ route('classrooms.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition ease-in-out duration-150">
+                        <a href="{{ route(auth()->user()->role . '.classrooms.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition ease-in-out duration-150">
                             Cancelar
                         </a>
                         <x-primary-button>

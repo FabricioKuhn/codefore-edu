@@ -25,16 +25,33 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        // Regra de Ouro: Se for Super Admin, vai pro painel CodeForce
-        if ($request->user()->is_super_admin) {
+        $user = $request->user();
+
+        // 1. Super Admin vai pro painel CodeForce
+        // Note que estou checando a role agora, já que você tem isso no banco!
+        if ($user->role === 'super_admin' || $user->is_super_admin) {
             return redirect()->route('superadmin.dashboard');
         }
 
-        // Se for aluno/professor/admin da escola, vai pro painel normal
-        return redirect()->intended(route('dashboard', absolute: false));
+        // 2. Admin do Tenant vai para /admin
+        if ($user->role === 'admin') {
+            return redirect()->intended('/admin/dashboard');
+        }
+
+        // 3. Professor vai para /professor
+        if ($user->role === 'teacher') {
+            return redirect()->intended('/professor/dashboard');
+        }
+
+        // 4. Aluno vai para /aluno
+        if ($user->role === 'student') {
+            return redirect()->intended('/aluno/dashboard');
+        }
+
+        // Fallback de segurança
+        return redirect('/');
     }
 
     /**

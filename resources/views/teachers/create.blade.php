@@ -2,11 +2,11 @@
     <x-slot name="header">
         <x-breadcrumbs :links="[
     ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')], 
-    ['name' => 'Secretaria de Alunos', 'url' => route(auth()->user()->role . '.students.index')],
-    ['name' => 'Cadastrar Aluno', 'url' => '#']
+    ['name' => 'Secretaria de Professores', 'url' => route(auth()->user()->role . '.teachers.index')],
+    ['name' => 'Cadastrar Professor', 'url' => '#']
 ]" />
         <h2 class="text-xl font-semibold text-secondary leading-tight mt-2">
-            Cadastrar Novo Aluno
+            Cadastrar Novo Professor
         </h2>
     </x-slot>
 
@@ -14,7 +14,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-auth-session-status class="mb-4" :status="session('success')" />
 
-            <form action="{{ route(auth()->user()->role . '.students.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route(auth()->user()->role . '.teachers.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-8 space-y-8">
                     
@@ -36,6 +36,10 @@
                                 <x-input-label for="password" value="Senha Provisória *" />
                                 <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" required autocomplete="new-password" />
                                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                            </div>
+                            <div class="mb-6">
+                                <x-input-label for="avatar" value="Foto do Professor" />
+                                <input type="file" name="avatar" id="avatar" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                             </div>
                         </div>
                     </section>
@@ -62,22 +66,6 @@
                         </div>
                     </section>
 
-                    <!-- Seção 3: Responsável -->
-                    <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados do Responsável (Opcional)</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <x-input-label for="guardian_name" value="Nome do Responsável" />
-                                <x-text-input id="guardian_name" name="guardian_name" type="text" class="mt-1 block w-full" :value="old('guardian_name')" />
-                                <x-input-error :messages="$errors->get('guardian_name')" class="mt-2" />
-                            </div>
-                            <div>
-                                <x-input-label for="guardian_phone" value="Telefone do Responsável" />
-                                <x-text-input id="guardian_phone" name="guardian_phone" type="text" class="mt-1 block w-full" :value="old('guardian_phone')" />
-                                <x-input-error :messages="$errors->get('guardian_phone')" class="mt-2" />
-                            </div>
-                        </div>
-                    </section>
 
                     <!-- Seção 4: Endereço -->
                     <section>
@@ -130,7 +118,7 @@
                     </section>
 
                     <div class="pt-6 flex justify-end gap-4 border-t border-gray-200">
-                        <a href="{{ route(auth()->user()->role . '.students.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-25 transition">
+                        <a href="{{ route(auth()->user()->role . '.teacher.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-25 transition">
                             Cancelar
                         </a>
                         <x-primary-button>

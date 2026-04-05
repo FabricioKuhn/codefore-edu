@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
         <x-breadcrumbs :links="[
-    ['name' => 'Home', 'url' => route('dashboard')],
-    ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
-    ['name' => $activity->classroom->name, 'url' => route('classrooms.show', $activity->classroom)],
+    ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')],
+    ['name' => 'Minhas Turmas', 'url' => route(auth()->user()->role . '.classrooms.index')],
+    ['name' => $activity->classroom->name, 'url' => route(auth()->user()->role . '.classrooms.show', $activity->classroom)],
     ['name' => $activity->title, 'url' => '#']
 ]" />
         <div class="flex justify-between items-center" x-data>
@@ -38,7 +38,7 @@
                 </div>
 
                 <!-- Configurações Rápidas -->
-                <form action="{{ route('activities.update', $activity->id) }}" method="POST" class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap gap-4 items-end">
+                <form action="{{ route(auth()->user()->role . '.activities.update', $activity->id) }}" method="POST" class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap gap-4 items-end">
                     @csrf @method('PUT')
                     
                     <div class="flex-1 min-w-[150px]">
@@ -133,12 +133,12 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($question->status)
-                                    <form action="{{ route('questions.update_status', $question->id) }}" method="POST">
+                                    <form action="{{ route(auth()->user()->role . '.questions.update_status', $question->id) }}" method="POST">
                                         @csrf @method('PUT')
                                         <button type="submit" class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:brightness-90 transition" title="Desabilitar">Ativa</button>
                                     </form>
                                 @else
-                                    <form action="{{ route('questions.update_status', $question->id) }}" method="POST">
+                                    <form action="{{ route(auth()->user()->role . '.questions.update_status', $question->id) }}" method="POST">
                                         @csrf @method('PUT')
                                         <button type="submit" class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:brightness-90 transition" title="Habilitar">Inativa</button>
                                     </form>
@@ -201,12 +201,12 @@
                                 <button type="button" class="text-white bg-primary px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Avaliar">Avaliar</button>
                                 <button type="button" class="text-white bg-blue-500 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Prorrogar Prazo">Prazo</button>
                                 @if($isDisabled)
-                                    <form action="{{ route('activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
+                                    <form action="{{ route(auth()->user()->role . '.activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="text-white bg-green-600 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Habilitar">Habilitar</button>
                                     </form>
                                 @else
-                                    <form action="{{ route('activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
+                                    <form action="{{ route(auth()->user()->role . '.activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="text-white bg-red-500 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Desabilitar">Ocultar</button>
                                     </form>
@@ -368,7 +368,7 @@
             return {
                 openModal: false,
                 imagePreviews: [],
-                actionUrl: '{{ route("activities.questions.store", $activity) }}',
+                actionUrl: '{{ route(auth()->user()->role . '.activities.questions.store', $activity) }}',
                 method: 'POST',
                 form: {
                     type: 'multiple_choice',
@@ -395,7 +395,7 @@
                 },
                 openForCreate() {
                     this.method = 'POST';
-                    this.actionUrl = '{{ route("activities.questions.store", $activity) }}';
+                    this.actionUrl = '{{ route(auth()->user()->role . '.activities.questions.store', $activity) }}';
                     this.imagePreviews = [];
                     this.form = {
                         type: 'multiple_choice',

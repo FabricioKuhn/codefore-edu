@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
         <x-breadcrumbs :links="[
-            ['name' => 'Home', 'url' => route('dashboard')],
-            ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')]
+            ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')],
+            ['name' => 'Minhas Turmas', 'url' => route(auth()->user()->role . '.classrooms.index')]
         ]" />
         <h2 class="font-semibold text-xl text-secondary leading-tight">
             {{ __('Gestão de Turmas') }}
@@ -13,14 +13,14 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                <form method="GET" action="{{ route('classrooms.index') }}" class="w-full md:w-1/3 flex">
+                <form method="GET" action="{{ route(auth()->user()->role . '.classrooms.index') }}" class="w-full md:w-1/3 flex">
                     <x-text-input name="search" value="{{ request('search') }}" placeholder="Buscar por nome ou matéria..." class="w-full rounded-r-none border-r-0 focus:ring-0" />
                     <button type="submit" class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-r-md text-secondary hover:bg-gray-300 font-semibold transition">
                         Filtrar
                     </button>
                 </form>
 
-                <a href="{{ route('classrooms.create') }}" class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest  transition">
+                <a href="{{ route(auth()->user()->role . '.classrooms.create') }}" class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest  transition">
                     + Nova Turma
                 </a>
             </div>
@@ -62,11 +62,11 @@
                                     </td>
                                     <td class="px-6 py-4 text-right flex justify-end gap-3">
                                         
-                                        <a href="{{ route('classrooms.show', $classroom) }}" class="text-primary hover:text-[#009688] font-semibold" title="Ver Atividades e Gerenciar">
+                                        <a href="{{ route(auth()->user()->role . '.classrooms.show', $classroom) }}" class="text-primary hover:text-[#009688] font-semibold" title="Ver Atividades e Gerenciar">
                                             Gerenciar
                                         </a>
 
-                                        <a href="{{ route('classrooms.edit', $classroom) }}" class="text-gray-600 hover:text-primary font-semibold" title="Editar Turma">
+                                        <a href="{{ route(auth()->user()->role . '.classrooms.edit', $classroom) }}" class="text-gray-600 hover:text-primary font-semibold" title="Editar Turma">
                                             Editar
                                         </a>
 

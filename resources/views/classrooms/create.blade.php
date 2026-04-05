@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
         <x-breadcrumbs :links="[
-    ['name' => 'Home', 'url' => route('dashboard')],
-    ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
+    ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')],
+    ['name' => 'Minhas Turmas', 'url' => route(auth()->user()->role . '.classrooms.index')],
     ['name' => 'Nova Turma', 'url' => '#']
 ]" />
         <h2 class="text-xl font-semibold text-secondary leading-tight">
@@ -13,7 +13,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6">
-                <form method="POST" action="{{ route('classrooms.store') }}">
+                <form method="POST" action="{{ route(auth()->user()->role . '.classrooms.store') }}">
                     @csrf
 
                     <!-- Nome da Turma -->
@@ -29,6 +29,18 @@
                         <x-text-input id="subject" class="block mt-1 w-full" type="text" name="subject" :value="old('subject')" required />
                         <x-input-error :messages="$errors->get('subject')" class="mt-2" />
                     </div>
+
+                    <div class="mt-4">
+    <x-input-label for="teacher_id" value="Professor Responsável" />
+    <select name="teacher_id" id="teacher_id" class="w-full border-gray-300 rounded-xl shadow-sm focus:border-primary focus:ring-primary">
+        <option value="">Selecione um professor</option>
+        @foreach($teachers as $teacher)
+            <option value="{{ $teacher->id }}" {{ (isset($classroom) && $classroom->teacher_id == $teacher->id) ? 'selected' : '' }}>
+                {{ $teacher->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <!-- XP Base Padrão -->
@@ -108,7 +120,7 @@
 </section>
 
                     <div class="flex items-center justify-end mt-4 text-right">
-                        <a href="{{ route('classrooms.index') }}" class="text-sm text-secondary hover:text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mr-4 font-semibold">
+                        <a href="{{ route(auth()->user()->role . '.classrooms.index') }}" class="text-sm text-secondary hover:text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mr-4 font-semibold">
                             Cancelar
                         </a>
                         <x-primary-button>

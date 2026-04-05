@@ -2,11 +2,11 @@
     <x-slot name="header">
         <x-breadcrumbs :links="[
     ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')], 
-    ['name' => 'Secretaria de Alunos', 'url' => route(auth()->user()->role . '.students.index')],
-    ['name' => 'Editar Aluno', 'url' => '#']
+    ['name' => 'Secretaria de Professores', 'url' => route(auth()->user()->role . '.teachers.index')],
+    ['name' => 'Editar Professor', 'url' => '#']
 ]" />
         <h2 class="text-xl font-semibold text-secondary leading-tight mt-2">
-            Editando Dados de: <span class="text-primary">{{ $student->name }}</span>
+            Editando Dados de: <span class="text-primary">{{ $teacher->name }}</span>
         </h2>
     </x-slot>
 
@@ -14,7 +14,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-auth-session-status class="mb-4" :status="session('success')" />
 
-            <form action="{{ route(auth()->user()->role . '.students.update', $student) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route(auth()->user()->role . '.teachers.update', $teacher) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-8 space-y-8">
@@ -25,12 +25,12 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <x-input-label for="name" value="Nome Completo *" />
-                                <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $student->name)" required autofocus />
+                                <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $teacher->name)" required autofocus />
                                 <x-input-error :messages="$errors->get('name')" class="mt-2" />
                             </div>
                             <div>
                                 <x-input-label for="email" value="E-mail *" />
-                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $student->email)" required />
+                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $teacher->email)" required />
                                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
                             <div>
@@ -59,35 +59,18 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="cpf" value="CPF" />
-                                <x-text-input id="cpf" name="cpf" type="text" class="mt-1 block w-full" :value="old('cpf', $student->cpf)" placeholder="000.000.000-00" oninput="maskCPF(this)" maxlength="14" />
+                                <x-text-input id="cpf" name="cpf" type="text" class="mt-1 block w-full" :value="old('cpf', $teacher->cpf)" placeholder="000.000.000-00" oninput="maskCPF(this)" maxlength="14" />
                                 <x-input-error :messages="$errors->get('cpf')" class="mt-2" />
                             </div>
                             <div>
                                 <x-input-label for="birth_date" value="Data de Nascimento" />
-                                <x-text-input id="birth_date" name="birth_date" type="date" class="mt-1 block w-full" :value="old('birth_date', $student->birth_date ? $student->birth_date->format('Y-m-d') : '')" />
+                                <x-text-input id="birth_date" name="birth_date" type="date" class="mt-1 block w-full" :value="old('birth_date', $teacher->birth_date ? $teacher->birth_date->format('Y-m-d') : '')" />
                                 <x-input-error :messages="$errors->get('birth_date')" class="mt-2" />
                             </div>
                             <div>
                                 <x-input-label for="phone" value="Telefone / Celular" />
-                                <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $student->phone)" placeholder="(00) 00000-0000" oninput="maskPhone(this)" maxlength="15" />
+                                <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $teacher->phone)" placeholder="(00) 00000-0000" oninput="maskPhone(this)" maxlength="15" />
                                 <x-input-error :messages="$errors->get('phone')" class="mt-2" />
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Seção 3: Responsável -->
-                    <section>
-                        <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Dados do Responsável (Opcional)</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <x-input-label for="guardian_name" value="Nome do Responsável" />
-                                <x-text-input id="guardian_name" name="guardian_name" type="text" class="mt-1 block w-full" :value="old('guardian_name', $student->guardian_name)" />
-                                <x-input-error :messages="$errors->get('guardian_name')" class="mt-2" />
-                            </div>
-                            <div>
-                                <x-input-label for="guardian_phone" value="Telefone do Responsável" />
-                                <x-text-input id="guardian_phone" name="guardian_phone" type="text" class="mt-1 block w-full" :value="old('guardian_phone', $student->guardian_phone)" placeholder="(00) 00000-0000" oninput="maskPhone(this)" maxlength="15" />
-                                <x-input-error :messages="$errors->get('guardian_phone')" class="mt-2" />
                             </div>
                         </div>
                     </section>
@@ -98,39 +81,39 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="zip_code" value="CEP" />
-                                <x-text-input id="zip_code" name="zip_code" type="text" class="mt-1 block w-full" :value="old('zip_code', $student->zip_code)" />
+                                <x-text-input id="zip_code" name="zip_code" type="text" class="mt-1 block w-full" :value="old('zip_code', $teacher->zip_code)" />
                                 <x-input-error :messages="$errors->get('zip_code')" class="mt-2" />
                             </div>
                             <div class="md:col-span-2 flex gap-4">
     <div class="flex-1">
         <x-input-label for="street" value="Endereço (Rua, Av.)" />
-        <x-text-input id="street" name="street" type="text" class="mt-1 block w-full" :value="old('street', $student->street)" />
+        <x-text-input id="street" name="street" type="text" class="mt-1 block w-full" :value="old('street', $teacher->street)" />
         <x-input-error :messages="$errors->get('street')" class="mt-2" />
     </div>
     <div class="w-1/3">
         <x-input-label for="number" value="Número" />
-        <x-text-input id="number" name="number" type="text" class="mt-1 block w-full" :value="old('number', $student->number ?? '')" />
+        <x-text-input id="number" name="number" type="text" class="mt-1 block w-full" :value="old('number', $teacher->number ?? '')" />
         <x-input-error :messages="$errors->get('number')" class="mt-2" />
     </div>
 </div>
                             <div>
                                 <x-input-label for="neighborhood" value="Bairro" />
-                                <x-text-input id="neighborhood" name="neighborhood" type="text" class="mt-1 block w-full" :value="old('neighborhood', $student->neighborhood)" />
+                                <x-text-input id="neighborhood" name="neighborhood" type="text" class="mt-1 block w-full" :value="old('neighborhood', $teacher->neighborhood)" />
                                 <x-input-error :messages="$errors->get('neighborhood')" class="mt-2" />
                             </div>
                             <div>
                                 <x-input-label for="city" value="Cidade" />
-                                <x-text-input id="city" name="city" type="text" class="mt-1 block w-full" :value="old('city', $student->city)" />
+                                <x-text-input id="city" name="city" type="text" class="mt-1 block w-full" :value="old('city', $teacher->city)" />
                                 <x-input-error :messages="$errors->get('city')" class="mt-2" />
                             </div>
                             <div>
                                 <x-input-label for="state" value="Estado (UF)" />
-                                <x-text-input id="state" name="state" type="text" class="mt-1 block w-full" :value="old('state', $student->state)" maxlength="2" />
+                                <x-text-input id="state" name="state" type="text" class="mt-1 block w-full" :value="old('state', $teacher->state)" maxlength="2" />
                                 <x-input-error :messages="$errors->get('state')" class="mt-2" />
                             </div>
                             <div class="md:col-span-3">
                                 <x-input-label for="complement" value="Complemento" />
-                                <x-text-input id="complement" name="complement" type="text" class="mt-1 block w-full" :value="old('complement', $student->complement)" />
+                                <x-text-input id="complement" name="complement" type="text" class="mt-1 block w-full" :value="old('complement', $teacher->complement)" />
                                 <x-input-error :messages="$errors->get('complement')" class="mt-2" />
                             </div>
                         </div>
@@ -140,11 +123,11 @@
                     <section>
                         <h3 class="font-semibold text-lg border-b border-gray-200 pb-2 mb-4 text-secondary">Documentos (Anexos)</h3>
                         
-                        @if($student->documents && count($student->documents) > 0)
+                        @if($teacher->documents && count($teacher->documents) > 0)
                             <div class="mb-4">
                                 <p class="text-sm font-semibold text-gray-700 mb-2">Documentos já anexados:</p>
                                 <ul class="list-disc list-inside space-y-1">
-                                    @foreach($student->documents as $doc)
+                                    @foreach($teacher->documents as $doc)
                                         <li class="text-sm">
                                             <a href="{{ $doc['url'] }}" target="_blank" class="text-primary hover:underline">
                                                 {{ $doc['original_name'] ?? 'Documento Anexado' }}
@@ -175,7 +158,7 @@
                     </section>
 
                     <div class="pt-6 flex justify-end gap-4 border-t border-gray-200">
-                        <a href="{{ route(auth()->user()->role . '.students.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
+                        <a href="{{ route(auth()->user()->role . '.teachers.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
                             Cancelar
                         </a>
                         <x-primary-button>

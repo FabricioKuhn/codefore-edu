@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <x-breadcrumbs :links="[['name' => 'Home', 'url' => route('dashboard')], ['name' => 'Secretaria de Alunos', 'url' => route('students.index')]]" />
+        <x-breadcrumbs :links="[['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')], ['name' => 'Secretaria de Alunos', 'url' => route(auth()->user()->role . '.students.index')]]" />
         <h2 class="font-semibold text-xl text-secondary leading-tight">
             {{ __('Gestão de Alunos') }}
         </h2>
@@ -10,14 +10,14 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                <form method="GET" action="{{ route('students.index') }}" class="w-full md:w-1/3 flex">
+                <form method="GET" action="{{ route(auth()->user()->role . '.students.index') }}" class="w-full md:w-1/3 flex">
                     <x-text-input name="search" value="{{ request('search') }}" placeholder="Buscar por nome, CPF ou e-mail..." class="w-full rounded-r-none" />
                     <button type="submit" class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-r-md text-secondary hover:bg-gray-300 font-semibold transition">
                         Filtrar
                     </button>
                 </form>
 
-                <a href="{{ route('students.create') }}" class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest  transition">
+                <a href="{{ route(auth()->user()->role . '.students.create') }}" class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest  transition">
                     + Cadastrar Novo Aluno
                 </a>
             </div>
@@ -66,11 +66,11 @@
                                             Vincular
                                         </button>
 
-                                        <a href="{{ route('students.edit', $student) }}" class="text-gray-600 hover:text-primary font-semibold" title="Editar Cadastro">
+                                        <a href="{{ route(auth()->user()->role . '.students.edit', $student) }}" class="text-gray-600 hover:text-primary font-semibold" title="Editar Cadastro">
                                             Editar
                                         </a>
 
-                                        <form action="{{ route('students.toggle-status', $student) }}" method="POST" class="inline" onsubmit="return confirm('Mudar o status deste aluno?');">
+                                        <form action="{{ route(auth()->user()->role . '.students.toggle-status', $student) }}" method="POST" class="inline" onsubmit="return confirm('Mudar o status deste aluno?');">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="{{ $student->is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }} font-semibold">

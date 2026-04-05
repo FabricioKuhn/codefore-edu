@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="header">  
         <x-breadcrumbs :links="[
-    ['name' => 'Home', 'url' => route('dashboard')],
-    ['name' => 'Minhas Turmas', 'url' => route('classrooms.index')],
-    ['name' => $classroom->name, 'url' => route('classrooms.show', $classroom)],
+    ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')],
+    ['name' => 'Minhas Turmas', 'url' => route(auth()->user()->role . '.classrooms.index')],
+    ['name' => $classroom->name, 'url' => route(auth()->user()->role . '.classrooms.show', $classroom)],
     ['name' => 'Nova Atividade', 'url' => '#']
 ]" />
         <h2 class="text-xl font-semibold text-secondary leading-tight">
@@ -14,7 +14,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6">
-                <form method="POST" action="{{ route('activities.store') }}">
+                <form method="POST" action="{{ route(auth()->user()->role . '.activities.store') }}">
                     @csrf
                     <input type="hidden" name="classroom_id" value="{{ $classroom->id }}">
 
@@ -88,7 +88,7 @@
                     </div>
 
                     <div class="flex items-center justify-end mt-4 text-right">
-                        <a href="{{ route('classrooms.show', $classroom) }}" class="text-sm text-secondary hover:text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mr-4 font-semibold">
+                        <a href="{{ route(auth()->user()->role . '.classrooms.show', $classroom) }}" class="text-sm text-secondary hover:text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mr-4 font-semibold">
                             Cancelar
                         </a>
                         <x-primary-button>

@@ -50,18 +50,32 @@
                 <main class="max-w-7xl mx-auto py-6">
     {{-- Bloco de Mensagens de Erro/Sucesso --}}
     @if(session('error'))
-        <div class="mb-4 mx-4 sm:mx-6 lg:px-8">
-            <div class="bg-red-500 text-white px-4 py-3 rounded-lg shadow-md font-bold">
+        <div x-data="{ show: true }" 
+             x-init="setTimeout(() => show = false, 5000)" 
+             x-show="show" 
+             x-transition 
+             class="mb-4 mx-4 sm:mx-6 lg:px-8 relative">
+            <div class="bg-red-500 text-white px-4 py-3 rounded-lg shadow-md font-bold pr-10">
                 {{ session('error') }}
             </div>
+            <button @click="show = false" class="absolute right-12 top-1/2 -translate-y-1/2 text-white hover:text-red-100 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
     @endif
 
     @if(session('success'))
-        <div class="mb-4 mx-4 sm:mx-6 lg:px-8">
-            <div class="bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-md font-bold">
+        <div x-data="{ show: true }" 
+             x-init="setTimeout(() => show = false, 5000)" 
+             x-show="show" 
+             x-transition 
+             class="mb-4 mx-4 sm:mx-6 lg:px-8 relative">
+            <div class="bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-md font-bold pr-10">
                 {{ session('success') }}
             </div>
+            <button @click="show = false" class="absolute right-12 top-1/2 -translate-y-1/2 text-white hover:text-emerald-100 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
     @endif
 

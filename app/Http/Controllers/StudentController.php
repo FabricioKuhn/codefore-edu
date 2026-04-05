@@ -62,6 +62,7 @@ class StudentController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'cpf' => ['nullable', 'string', 'max:20', new \App\Rules\CpfValido],
             'birth_date' => 'nullable|date',
             'phone' => 'nullable|string|max:20',

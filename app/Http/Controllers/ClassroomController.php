@@ -36,15 +36,13 @@ class ClassroomController extends Controller
      */
     public function create()
     {
-        $institution = auth()->user()->institution;
+        // Busca os professores que pertencem à escola logada
+        $teachers = \App\Models\User::where('role', 'teacher')
+                        ->where('institution_id', auth()->user()->institution_id)
+                        ->get();
 
-        // 🛡️ TRAVA: Se o plano não permitir mais turmas, barra aqui.
-        if (!$institution->canCreate('classes')) {
-            return redirect()->route('classrooms.index')
-                ->with('error', '🚫 Limite de turmas atingido para o seu plano atual. Faça um upgrade para criar novas turmas!');
-        }
-
-        return view('classrooms.create');
+        // Envia a variável $teachers para a tela
+        return view('classrooms.create', compact('teachers'));
     }
 
     /**
@@ -56,7 +54,7 @@ class ClassroomController extends Controller
 
         // 🛡️ TRAVA: Segurança extra caso tentem burlar o formulário
         if (!$institution->canCreate('classes')) {
-            return redirect()->route('classrooms.index')
+            return redirect()->route(auth()->user()->role . '.classrooms.index')
                 ->with('error', '🚫 Operação negada: Limite de turmas excedido.');
         }
 
@@ -103,7 +101,7 @@ class ClassroomController extends Controller
         // 4. Gera as aulas no calendário
         $classroom->generateLessons();
 
-        return redirect()->route('classrooms.index')
+        return redirect()->route(auth()->user()->role . '.classrooms.index')
                          ->with('success', 'Turma e Calendário criados com sucesso!');
     }
 
@@ -127,10 +125,13 @@ class ClassroomController extends Controller
 
     public function edit(Classroom $classroom)
     {
-        if ($classroom->teacher_id !== request()->user()->id) {
-            abort(403);
-        }
-        return view('classrooms.edit', compact('classroom'));
+        // Busca os professores
+        $teachers = \App\Models\User::where('role', 'teacher')
+                        ->where('institution_id', auth()->user()->institution_id)
+                        ->get();
+
+        // Envia a turma ($classroom) E os professores ($teachers) para a tela
+        return view('classrooms.edit', compact('classroom', 'teachers'));
     }
 
     public function update(Request $request, Classroom $classroom)
@@ -154,7 +155,7 @@ class ClassroomController extends Controller
         // Regenera as aulas se houver mudanças no cronograma
         $classroom->generateLessons();
 
-        return redirect()->route('classrooms.index')
+        return redirect()->route(auth()->user()->role . '.classrooms.index')
                          ->with('success', 'Turma atualizada e cronograma regenerado com sucesso!');
     }
 
@@ -166,7 +167,7 @@ class ClassroomController extends Controller
 
         $classroom->delete();
 
-        return redirect()->route('classrooms.index')
+        return redirect()->route(auth()->user()->role . '.classrooms.index')
                          ->with('success', 'Turma removida com sucesso!');
     }
 }
