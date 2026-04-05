@@ -35,7 +35,7 @@
     </div>
                 <div class="col-span-12 md:col-span-4">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">CNPJ*</label>
-                    <input type="text" name="cnpj" value="{{ $institution->cnpj }}" required class="w-full border-gray-300 rounded-md text-sm mt-1">
+                    <input type="text" name="cnpj" value="{{ $institution->cnpj }}" x-mask="99.999.999/9999-99" placeholder="00.000.000/0000-00" @blur="$el.value = $el.value.trim()" required class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" maxlength="18">
                 </div>
                 <div class="col-span-12">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Razão Social*</label>
@@ -66,17 +66,17 @@
             <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-12 md:col-span-7">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">E-mail</label>
-                    <input type="email" name="email" value="{{ $institution->email }}" class="w-full border-gray-300 rounded-md text-sm mt-1">
+                    <input type="email" name="email" value="{{ $institution->email }}" @blur="$el.value = $el.value.trim()" class="w-full border-gray-300 rounded-md text-sm mt-1">
                 </div>
                 <div class="col-span-12 md:col-span-5">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Telefone</label>
-                    <input type="text" name="phone" value="{{ $institution->phone }}" class="w-full border-gray-300 rounded-md text-sm mt-1">
+                    <input type="text" name="phone" value="{{ $institution->phone }}" x-mask="(99) 99999-9999" placeholder="(00) 00000-0000" @blur="$el.value = $el.value.trim()" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" maxlength="15">
                 </div>
 
                 {{-- Grid Compacto para Endereço --}}
                 <div class="col-span-12 md:col-span-3">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">CEP</label>
-                    <input type="text" name="zip_code" value="{{ $institution->zip_code }}" class="w-full border-gray-300 rounded-md text-sm mt-1">
+                    <input type="text" name="zip_code" value="{{ $institution->zip_code }}" x-mask="99999-999" placeholder="00000-000" @blur="$el.value = $el.value.trim()" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" maxlength="9">
                 </div>
                 <div class="col-span-12 md:col-span-7">
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Endereço</label>

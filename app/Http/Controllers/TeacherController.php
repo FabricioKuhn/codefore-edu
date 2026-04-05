@@ -25,45 +25,46 @@ class TeacherController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'cpf' => ['nullable', 'string', 'max:20', new \App\Rules\CpfValido],
-            'birth_date' => 'nullable|date',
-            'phone' => 'nullable|string|max:20',
-            'zip_code' => 'nullable|string|max:20',
-            'street' => 'nullable|string|max:255',
-            'number' => 'nullable|string|max:50',
-            'neighborhood' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:2',
-            'complement' => 'nullable|string|max:255',
-        ]);
+{
+    // 1. Validamos os dados e os colocamos na variável $validated
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'cpf' => ['nullable', 'string', 'max:20', new \App\Rules\CpfValido],
+        'birth_date' => 'nullable|date',
+        'phone' => 'nullable|string|max:20',
+        'zip_code' => 'nullable|string|max:20',
+        'street' => 'nullable|string|max:255',
+        'number' => 'nullable|string|max:50',
+        'neighborhood' => 'nullable|string|max:255',
+        'city' => 'nullable|string|max:255',
+        'state' => 'nullable|string|max:2',
+        'complement' => 'nullable|string|max:255',
+    ]);
 
-        if ($request->hasFile('avatar')) {
-        $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+    // 2. Tratamos o upload do avatar se ele existir
+    if ($request->hasFile('avatar')) {
+        $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
     }
 
-    $data['password'] = Hash::make($data['password']);
-    $data['role'] = 'teacher';
-    $data['institution_id'] = auth()->user()->institution_id;
-    $data['is_active'] = true;
+    // 3. Preparamos os campos automáticos
+    $validated['password'] = Hash::make($request->password);
+    $validated['role'] = 'teacher';
+    $validated['institution_id'] = auth()->user()->institution_id;
+    $validated['is_active'] = true;
+    
+    // Geramos um username único caso o banco exija
+    $validated['username'] = strstr($request->email, '@', true) . rand(100, 999);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'username' => strstr($request->email, '@', true) . rand(100, 999), // Fallback para username único
-            'password' => Hash::make($request->password),
-            'role' => 'teacher',
-            'institution_id' => auth()->user()->institution_id,
-            'is_active' => true,
-        ]);
+    // 4. Criamos o usuário passando o array $validated completo
+    // Certifique-se que esses campos (cpf, phone, etc) estejam no $fillable do seu Model User
+    User::create($validated);
 
-        return redirect()->route(auth()->user()->role . '.teachers.index')->with('success', 'Professor cadastrado com sucesso!');
-    }
+    return redirect()->route(auth()->user()->role . '.teachers.index')
+        ->with('success', 'Professor cadastrado com sucesso!');
+}
 
     public function edit(User $teacher)
     {

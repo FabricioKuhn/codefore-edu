@@ -65,10 +65,11 @@ class InstitutionController extends Controller
             'logo_original' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'logo_negative' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'flat_icon'     => 'nullable|image|mimes:jpeg,png,jpg,svg|max:1024',
+            'plan_id'       => 'nullable|exists:plans,id',
         ]);
 
         // LOGICA: Se não veio plan_id, busca o plano marcado como "is_free"
-        $defaultPlan = Plan::where('is_free', true)->first();
+        $defaultPlan = \App\Models\Plan::where('is_free', true)->first();
         $validated['plan_id'] = $request->plan_id ?? ($defaultPlan ? $defaultPlan->id : null);
 
         // Upload de Arquivos
@@ -77,6 +78,11 @@ class InstitutionController extends Controller
                 $validated[$field] = $request->file($field)->store('logos', 'public');
             }
         }
+
+        // RESOLVENDO O ERRO 1364: Injetando o campo 'name' obrigatório no array que vai pro banco
+        $validated['name'] = $request->trading_name; 
+
+        $validated['slug'] = \Illuminate\Support\Str::slug($request->trading_name);
 
         Institution::create($validated);
 
@@ -125,9 +131,11 @@ class InstitutionController extends Controller
                 if ($institution->$field) {
                     Storage::disk('public')->delete($institution->$field);
                 }
-                $validated[$field] = $request->file($field)->store('logos', 'public');
+                
             }
         }
+
+        $validated['name'] = $request->trading_name;
 
         $institution->update($validated);
 

@@ -22,7 +22,7 @@
 <link rel="icon" type="image/png" href="{{ $faviconUrl }}">
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css'])
         <style>
     :root {
         /* Se houver tenant, usa a cor dele. Se não, usa o verde CodeForce */
@@ -83,5 +83,8 @@
 </main>
                 
         </div>
+
+        <!-- Scripts -->
+        @vite(['resources/js/app.js'])
     </body>
 </html>

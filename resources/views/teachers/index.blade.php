@@ -87,20 +87,24 @@
                                             {{ $teacher->is_active ? 'Ativo' : 'Inativo' }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 text-right space-x-2">
-                                        <button @click="enrollModalOpen = true; selectedStudentId = {{ $teacher->id }}; selectedStudentName = '{{ $teacher->name }}'" class="text-blue-600 hover:text-blue-900 font-semibold" title="Vincular à Turma">
-                                            Vincular
+                                    <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap flex justify-end">
+                                        <button @click="enrollModalOpen = true; selectedStudentId = {{ $teacher->id }}; selectedStudentName = '{{ $teacher->name }}'" class="inline-block transition" data-tooltip="Vincular à Turma">
+                                            <svg class="w-5 h-5 text-purple-600 hover:text-purple-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                                         </button>
 
-                                        <a href="{{ route(auth()->user()->role . '.teachers.edit', $teacher) }}" class="text-gray-600 hover:text-primary font-semibold" title="Editar Cadastro">
-                                            Editar
+                                        <a href="{{ route(auth()->user()->role . '.teachers.edit', $teacher) }}" class="inline-block transition" data-tooltip="Editar Professor">
+                                            <svg class="w-5 h-5 text-amber-500 hover:text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                         </a>
 
                                         <form action="{{ route(auth()->user()->role . '.teachers.toggle-status', $teacher) }}" method="POST" class="inline" onsubmit="return confirm('Mudar o status deste professor?');">
     @csrf
     @method('PATCH')
-    <button type="submit" class="{{ $teacher->is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }} font-semibold">
-        {{ $teacher->is_active ? 'Inativar' : 'Ativar' }}
+    <button type="submit" class="inline-block transition" data-tooltip="{{ $teacher->is_active ? 'Inativar Professor' : 'Ativar Professor' }}">
+        @if($teacher->is_active)
+            <svg class="w-5 h-5 text-red-600 hover:text-red-800" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 2.524a6 6 0 018.367 8.366L13.477 14.89M9.224 5.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" clip-rule="evenodd"></path></svg>
+        @else
+            <svg class="w-5 h-5 text-emerald-600 hover:text-emerald-800" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+        @endif
     </button>
 </form>
                                     </td>
@@ -143,20 +147,42 @@
 
                             <div>
                                 <label class="block text-xs font-black text-gray-400 uppercase mb-1">E-mail Corporativo</label>
-                                <input type="email" name="email" x-model="teacher.email" required 
+                                <input type="email" name="email" x-model="teacher.email" @blur="teacher.email = teacher.email.trim()" required 
                                        class="w-full border-gray-200 rounded-lg focus:ring-primary focus:border-primary font-medium text-sm">
                             </div>
 
-                            <div>
+                            <div x-data="{ showPassword: false }">
                                 <label class="block text-xs font-black text-gray-400 uppercase mb-1" x-text="editMode ? 'Nova Senha (deixe em branco para manter)' : 'Senha de Acesso'"></label>
-                                <input type="password" name="password" :required="!editMode"
-                                       class="w-full border-gray-200 rounded-lg focus:ring-primary focus:border-primary font-medium text-sm">
+                                <div class="relative">
+                                    <input :type="showPassword ? 'text' : 'password'" name="password" :required="!editMode"
+                                           class="w-full border-gray-200 rounded-lg focus:ring-primary focus:border-primary font-medium text-sm pr-10">
+                                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-primary transition">
+                                        <svg x-show="!showPassword" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" />
+                                        </svg>
+                                        <svg x-show="showPassword" x-cloak class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
-                            <div>
+                            <div x-data="{ showPasswordConfirm: false }">
                                 <label class="block text-xs font-black text-gray-400 uppercase mb-1">Confirme a Senha</label>
-                                <input type="password" name="password_confirmation" :required="!editMode"
-                                       class="w-full border-gray-200 rounded-lg focus:ring-primary focus:border-primary font-medium text-sm">
+                                <div class="relative">
+                                    <input :type="showPasswordConfirm ? 'text' : 'password'" name="password_confirmation" :required="!editMode"
+                                           class="w-full border-gray-200 rounded-lg focus:ring-primary focus:border-primary font-medium text-sm pr-10">
+                                    <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-primary transition">
+                                        <svg x-show="!showPasswordConfirm" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" />
+                                        </svg>
+                                        <svg x-show="showPasswordConfirm" x-cloak class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="pt-4 flex gap-3">

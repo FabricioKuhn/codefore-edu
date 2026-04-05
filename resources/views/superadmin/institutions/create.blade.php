@@ -30,7 +30,7 @@
     </div>
                 <div class="col-span-12 md:col-span-3">
                     <label class="text-[11px] font-bold text-gray-400 uppercase">CNPJ*</label>
-                    <input type="text" name="cnpj" value="{{ $institution->cnpj ?? old('cnpj') }}" required class="w-full border-gray-300 rounded-md text-sm">
+                    <input type="text" name="cnpj" value="{{ $institution->cnpj ?? old('cnpj') }}" x-mask="99.999.999/9999-99" placeholder="00.000.000/0000-00" @blur="$el.value = $el.value.trim()" required class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" maxlength="18">
                 </div>
                 <div class="col-span-12">
                     <label class="text-[11px] font-bold text-gray-400 uppercase">Razão Social*</label>
@@ -61,16 +61,16 @@
             <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-12 md:col-span-7">
                     <label class="text-[11px] font-bold text-gray-400 uppercase">E-mail</label>
-                    <input type="email" name="email" value="{{ $institution->email ?? old('email') }}" class="w-full border-gray-300 rounded-md text-sm">
+                    <input type="email" name="email" value="{{ $institution->email ?? old('email') }}" @blur="$el.value = $el.value.trim()" class="w-full border-gray-300 rounded-md text-sm">
                 </div>
                 <div class="col-span-12 md:col-span-5">
                     <label class="text-[11px] font-bold text-gray-400 uppercase">Telefone</label>
-                    <input type="text" name="phone" value="{{ $institution->phone ?? old('phone') }}" class="w-full border-gray-300 rounded-md text-sm">
+                    <input type="text" name="phone" value="{{ $institution->phone ?? old('phone') }}" x-mask="(99) 99999-9999" placeholder="(00) 00000-0000" @blur="$el.value = $el.value.trim()" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" maxlength="15">
                 </div>
                 
                 <div class="col-span-12 md:col-span-3">
                     <label class="text-[11px] font-bold text-gray-400 uppercase">CEP</label>
-                    <input type="text" name="zip_code" value="{{ $institution->zip_code ?? old('zip_code') }}" class="w-full border-gray-300 rounded-md text-sm">
+                    <input type="text" name="zip_code" value="{{ $institution->zip_code ?? old('zip_code') }}" x-mask="99999-999" placeholder="00000-000" @blur="$el.value = $el.value.trim()" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" maxlength="9">
                 </div>
                 <div class="col-span-12 md:col-span-7">
                     <label class="text-[11px] font-bold text-gray-400 uppercase">Endereço</label>
@@ -126,12 +126,15 @@
                 </div>
                 
                 <div class="col-span-12 md:col-span-4">
-                    <label class="text-[11px] font-bold text-gray-400 uppercase">Plano</label>
-                    <select name="plan" class="w-full border-gray-600 rounded-md text-sm bg-gray-800 text-white">
-                        <option value="">A definir</option>
-                        <option value="start" {{ (isset($institution) && $institution->plan == 'start') ? 'selected' : '' }}>Start</option>
-                        <option value="pro" {{ (isset($institution) && $institution->plan == 'pro') ? 'selected' : '' }}>Pro</option>
-                    </select>
+                    <label class="text-[10px] font-black text-gray-400 uppercase">Plano da Instituição</label>
+    <select name="plan_id" class="w-full border-gray-200 rounded-lg text-sm mt-1 focus:ring-primary focus:border-primary">
+        <option value="">Selecione um Plano</option>
+        @foreach($plans as $plan)
+            <option value="{{ $plan->id }}" {{ (isset($institution) && $institution->plan_id == $plan->id) ? 'selected' : '' }}>
+                {{ $plan->name }} (R$ {{ number_format($plan->price_monthly, 2, ',', '.') }})
+            </option>
+        @endforeach
+    </select>
                 </div>
             </div>
         </div>

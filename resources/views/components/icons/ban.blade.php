@@ -1,0 +1,1 @@
+<svg class="w-5 h-5 text-red-600 hover:text-red-800 transition" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 2.524a6 6 0 018.367 8.366L13.477 14.89M9.224 5.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" clip-rule="evenodd"></path></svg>

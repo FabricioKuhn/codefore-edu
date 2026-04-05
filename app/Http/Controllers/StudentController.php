@@ -113,7 +113,7 @@ class StudentController extends Controller
             'documents' => !empty($documents) ? $documents : null,
         ]);
 
-        return redirect()->route('students.index')->with('success', 'Aluno cadastrado com sucesso!');
+        return redirect()->route(auth()->user()->role . '.students.index')->with('success', 'Aluno cadastrado com sucesso!');
     }
 
     public function edit(User $student)
@@ -168,6 +168,6 @@ class StudentController extends Controller
 
         $student->update($data);
 
-        return redirect()->route('students.index')->with('success', 'Cadastro do aluno atualizado!');
+        return redirect()->route(auth()->user()->role . '.students.index')->with('success', 'Cadastro do aluno atualizado!');
     }
 }

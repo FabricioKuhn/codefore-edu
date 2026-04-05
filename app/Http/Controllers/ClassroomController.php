@@ -62,6 +62,7 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'subject' => 'required|string|max:255',
+            'teacher_id' => 'required|exists:users,id',
             'base_xp_level' => 'nullable|numeric',
             'level_growth_factor' => 'nullable|numeric',
             'total_lessons' => 'required|integer|min:1',
@@ -82,7 +83,7 @@ class ClassroomController extends Controller
         // 3. Criação da Turma
         $classroom = Classroom::create([
             'institution_id' => $institution->id,
-            'teacher_id' => $request->user()->id,
+            'teacher_id' => $request->teacher()->id,
             'name' => $validated['name'],
             'subject' => $validated['subject'],
             'join_code' => $joinCode,
@@ -139,6 +140,7 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'subject' => 'required|string|max:255',
+            'teacher_id' => 'required|exists:users,id',
             'total_lessons' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'min_attendance_percent' => 'nullable|numeric',

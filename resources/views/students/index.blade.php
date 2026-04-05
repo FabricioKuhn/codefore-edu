@@ -60,21 +60,25 @@
                                             <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded border border-red-400">Inativo</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                    <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap flex justify-end">
                                         
-                                        <button @click="enrollModalOpen = true; selectedStudentId = {{ $student->id }}; selectedStudentName = '{{ $student->name }}'" class="text-blue-600 hover:text-blue-900 font-semibold" title="Vincular à Turma">
-                                            Vincular
+                                        <button @click="enrollModalOpen = true; selectedStudentId = {{ $student->id }}; selectedStudentName = '{{ $student->name }}'" class="inline-block transition" data-tooltip="Vincular à Turma">
+                                            <svg class="w-5 h-5 text-purple-600 hover:text-purple-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                                         </button>
 
-                                        <a href="{{ route(auth()->user()->role . '.students.edit', $student) }}" class="text-gray-600 hover:text-primary font-semibold" title="Editar Cadastro">
-                                            Editar
+                                        <a href="{{ route(auth()->user()->role . '.students.edit', $student) }}" class="inline-block transition" data-tooltip="Editar Aluno">
+                                            <svg class="w-5 h-5 text-amber-500 hover:text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                         </a>
 
                                         <form action="{{ route(auth()->user()->role . '.students.toggle-status', $student) }}" method="POST" class="inline" onsubmit="return confirm('Mudar o status deste aluno?');">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="{{ $student->is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }} font-semibold">
-                                                {{ $student->is_active ? 'Inativar' : 'Ativar' }}
+                                            <button type="submit" class="inline-block transition" data-tooltip="{{ $student->is_active ? 'Inativar Aluno' : 'Ativar Aluno' }}">
+                                                @if($student->is_active)
+                                                    <svg class="w-5 h-5 text-red-600 hover:text-red-800" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 2.524a6 6 0 018.367 8.366L13.477 14.89M9.224 5.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" clip-rule="evenodd"></path></svg>
+                                                @else
+                                                    <svg class="w-5 h-5 text-emerald-600 hover:text-emerald-800" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                                @endif
                                             </button>
                                         </form>
                                     </td>
@@ -101,7 +105,7 @@
                     <h3 class="text-lg font-bold text-secondary mb-4">Vincular Aluno à Turma</h3>
                     <p class="text-sm text-gray-600 mb-4">Selecione a turma para o aluno: <span x-text="selectedStudentName" class="font-semibold text-primary"></span></p>
                     
-                    <form :action="`/students/${selectedStudentId}/enroll`" method="POST">
+                    <form action="{{ route(auth()->user()->role . '.students.enroll', $student->id) }}" method="POST">
                         @csrf
                         <div class="mb-4">
                             <x-input-label for="classroom_id" value="Turma" />

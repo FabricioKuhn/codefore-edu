@@ -30,7 +30,7 @@
                             </div>
                             <div>
                                 <x-input-label for="email" value="E-mail *" />
-                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $student->email)" required />
+                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $student->email)" @blur="$el.value = $el.value.trim()" required />
                                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
                             <div>
@@ -59,7 +59,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="cpf" value="CPF" />
-                                <x-text-input id="cpf" name="cpf" type="text" class="mt-1 block w-full" :value="old('cpf', $student->cpf)" placeholder="000.000.000-00" oninput="maskCPF(this)" maxlength="14" />
+                                <input id="cpf" name="cpf" type="text" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" :value="old('cpf', $student->cpf)" x-mask="999.999.999-99" placeholder="000.000.000-00" @blur="$el.value = $el.value.trim()" maxlength="14" />
                                 <x-input-error :messages="$errors->get('cpf')" class="mt-2" />
                             </div>
                             <div>
@@ -69,7 +69,7 @@
                             </div>
                             <div>
                                 <x-input-label for="phone" value="Telefone / Celular" />
-                                <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $student->phone)" placeholder="(00) 00000-0000" oninput="maskPhone(this)" maxlength="15" />
+                                <input id="phone" name="phone" type="text" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" :value="old('phone', $student->phone)" x-mask="(99) 99999-9999" placeholder="(00) 00000-0000" @blur="$el.value = $el.value.trim()" maxlength="15" />
                                 <x-input-error :messages="$errors->get('phone')" class="mt-2" />
                             </div>
                         </div>
@@ -86,7 +86,7 @@
                             </div>
                             <div>
                                 <x-input-label for="guardian_phone" value="Telefone do Responsável" />
-                                <x-text-input id="guardian_phone" name="guardian_phone" type="text" class="mt-1 block w-full" :value="old('guardian_phone', $student->guardian_phone)" placeholder="(00) 00000-0000" oninput="maskPhone(this)" maxlength="15" />
+                                <input id="guardian_phone" name="guardian_phone" type="text" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" :value="old('guardian_phone', $student->guardian_phone)" x-mask="(99) 99999-9999" placeholder="(00) 00000-0000" @blur="$el.value = $el.value.trim()" maxlength="15" />
                                 <x-input-error :messages="$errors->get('guardian_phone')" class="mt-2" />
                             </div>
                         </div>
@@ -98,7 +98,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <x-input-label for="zip_code" value="CEP" />
-                                <x-text-input id="zip_code" name="zip_code" type="text" class="mt-1 block w-full" :value="old('zip_code', $student->zip_code)" />
+                                <input id="zip_code" name="zip_code" type="text" class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" :value="old('zip_code', $student->zip_code)" x-mask="99999-999" placeholder="00000-000" @blur="$el.value = $el.value.trim()" maxlength="9" />
                                 <x-input-error :messages="$errors->get('zip_code')" class="mt-2" />
                             </div>
                             <div class="md:col-span-2 flex gap-4">
@@ -187,23 +187,4 @@
             </form>
         </div>
     </div>
-
-    <script>
-        function maskCPF(input) {
-            let v = input.value.replace(/\D/g, '');
-            if (v.length > 11) v = v.slice(0, 11);
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            input.value = v;
-        }
-
-        function maskPhone(input) {
-            let v = input.value.replace(/\D/g, '');
-            if (v.length > 11) v = v.slice(0, 11);
-            v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
-            v = v.replace(/(\d)(\d{4})$/, '$1-$2');
-            input.value = v;
-        }
-    </script>
 </x-app-layout>

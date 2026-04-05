@@ -96,20 +96,23 @@
                             </td>
 
                             {{-- AÇÕES --}}
-                            <td class="px-6 py-4 text-right flex justify-end gap-3">
-                                <a href="{{ route('superadmin.institutions.edit', $inst) }}" class="text-primary font-bold hover:underline">
-        Editar
-    </a>
+                            <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap flex justify-end">
+                                <a href="{{ route('superadmin.institutions.edit', $inst) }}" class="inline-block transition" data-tooltip="Editar Instituição">
+                                    <svg class="w-5 h-5 text-amber-500 hover:text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </a>
 
-    <form action="{{ route('superadmin.institutions.toggle-status', $inst) }}" method="POST" class="inline">
-        @csrf
-        @method('PATCH')
-        <button type="submit" 
-            onclick="return confirm('Deseja realmente {{ $inst->status ? 'bloquear' : 'desbloquear' }} esta instituição?')"
-            class="font-bold transition {{ $inst->status ? 'text-gray-400 hover:text-red-600' : 'text-green-500 hover:text-green-700' }}">
-            {{ $inst->status ? 'Bloquear' : 'Desbloquear' }}
-        </button>
-    </form>
+                                <form action="{{ route('superadmin.institutions.toggle-status', $inst) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="inline-block transition" data-tooltip="{{ $inst->status ? 'Bloquear Instituição' : 'Desbloquear Instituição' }}"
+                                        onclick="return confirm('Deseja realmente {{ $inst->status ? 'bloquear' : 'desbloquear' }} esta instituição?')">
+                                        @if($inst->status)
+                                            <svg class="w-5 h-5 text-red-600 hover:text-red-800" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 2.524a6 6 0 018.367 8.366L13.477 14.89M9.224 5.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" clip-rule="evenodd"></path></svg>
+                                        @else
+                                            <svg class="w-5 h-5 text-emerald-600 hover:text-emerald-800" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                        @endif
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @empty
