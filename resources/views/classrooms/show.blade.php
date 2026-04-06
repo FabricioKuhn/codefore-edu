@@ -13,7 +13,17 @@
         </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ activeTab: 'alunos', showAttendanceModal: false, showCancelModal: false, showRegisterModal: false, selectedLesson: {} }">
+    <div class="py-12" x-data="{ 
+    activeTab: 'alunos', 
+    showAttendanceModal: false, 
+    showCancelModal: false, 
+    showRegisterModal: false, 
+    enrollModalOpen: false,
+    selectedLesson: {},
+    {{-- A mágica está aqui: identifica se usa /admin ou /professor --}}
+    urlPrefix: '{{ auth()->user()->role === 'teacher' ? 'professor' : 'admin' }}' 
+}" 
+@abrir-modal-aluno.window="enrollModalOpen = true">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             {{-- Menu de Abas --}}
@@ -112,6 +122,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
+                                @if($lesson->status !== 'canceled')
                                 <button @click="selectedLesson = { 
                                     id: {{ $lesson->id }}, 
                                     title: '{{ $lesson->title ?? 'Aula Agendada' }}',
@@ -131,8 +142,19 @@
                                     attendances: {{ $lesson->attendances->pluck('status', 'user_id')->toJson() }}
                                 }; showRegisterModal = true" 
                                 class="text-secondary font-black text-[10px] uppercase mr-3 hover:brightness-90 transition">Registro</button>
+                                @endif
                                 
-                                <button @click="selectedLesson = { id: {{ $lesson->id }}, title: '{{ $lesson->title ?? 'Aula Agendada' }}' }; showCancelModal = true" class="text-red-400 font-black text-[10px] uppercase hover:brightness-90 transition">Cancelar</button>
+                                @if($lesson->status === 'scheduled')
+        <button @click="selectedLesson = { id: {{ $lesson->id }}, title: '{{ $lesson->title ?? 'Aula Agendada' }}' }; showCancelModal = true" 
+        class="text-red-400 font-black text-[10px] uppercase hover:brightness-90 transition">
+            Cancelar
+        </button>
+    @else
+        {{-- Opcional: Mostrar um aviso pequeno se a aula estiver cancelada --}}
+        @if($lesson->status === 'canceled')
+            <span class="text-[9px] font-black text-gray-300 uppercase italic">Aula Cancelada</span>
+        @endif
+    @endif
                             </td>
                         </tr>
                         @empty
@@ -194,7 +216,7 @@
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" @click="showAttendanceModal = false"></div>
                 <div class="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all">
-                    <form :action="'/lessons/' + selectedLesson.id + '/attendance'" method="POST">
+                    <form :action="'/' + urlPrefix + '/lessons/' + selectedLesson.id + '/attendance'" method="POST">
                         @csrf
                         <div class="bg-primary px-6 py-4">
                             <h3 class="text-lg font-black text-secondary uppercase tracking-tight" x-text="'Chamada: ' + selectedLesson.title"></h3>
@@ -252,7 +274,7 @@
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" @click="showCancelModal = false"></div>
                 <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
-                    <form :action="'/lessons/' + selectedLesson.id + '/cancel'" method="POST">
+                    <form :action="'/' + urlPrefix + '/lessons/' + selectedLesson.id + '/cancel'" method="POST">
                         @csrf
                         <div class="bg-red-500 px-6 py-4">
                             <h3 class="text-lg font-black text-white uppercase tracking-tight" x-text="'Cancelar Aula: ' + selectedLesson.title"></h3>
@@ -275,7 +297,7 @@
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" @click="showRegisterModal = false"></div>
                 <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
-                    <form :action="'/lessons/' + selectedLesson.id + '/register'" method="POST">
+                    <form :action="'/' + urlPrefix + '/lessons/' + selectedLesson.id + '/register'" method="POST">
                         @csrf
                         <div class="bg-secondary px-6 py-4">
                             <h3 class="text-lg font-black text-white uppercase tracking-tight" x-text="'Registro de Aula: ' + selectedLesson.title"></h3>
@@ -294,36 +316,45 @@
         </div>
 
         {{-- MODAL: MATRICULAR ALUNO --}}
-        <div x-data="{ open: false }" @abrir-modal-aluno.window="open = true" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
-            <div class="flex items-center justify-center min-h-screen p-4">
-                <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" @click="open = false"></div>
-                <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
-                    <form action="{{ route(auth()->user()->role . '.classrooms.students.store', $classroom) }}" method="POST">
-                        @csrf
-                        <div class="bg-primary px-6 py-4 border-b border-white/10">
-                            <h3 class="text-lg font-black text-secondary uppercase tracking-tight">Matricular Aluno</h3>
-                        </div>
-                        <div class="p-6 space-y-4 bg-white">
-                            <div>
-                                <x-input-label value="Nome Completo" class="text-[10px] font-black uppercase text-gray-400" />
-                                <x-text-input name="name" class="block mt-1 w-full" :value="old('name')" required />
-                            </div>
-                            <div>
-                                <x-input-label value="E-mail do Aluno" class="text-[10px] font-black uppercase text-gray-400" />
-                                <x-text-input type="email" name="email" class="block mt-1 w-full" :value="old('email')" required />
-                            </div>
-                            <div>
-                                <x-input-label value="Senha Provisória" class="text-[10px] font-black uppercase text-gray-400" />
-                                <x-text-input type="password" name="password" class="block mt-1 w-full" required />
-                            </div>
-                        </div>
-                        <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
-                            <button type="button" @click="open = false" class="text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition">Cancelar</button>
-                            <x-primary-button>Confirmar Matrícula</x-primary-button>
-                        </div>
-                    </form>
-                </div>
+        <div x-show="enrollModalOpen" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm transition-opacity"></div>
+
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-secondary">Vincular Aluno à Turma</h3>
+                <button @click="enrollModalOpen = false" class="text-gray-400 hover:text-secondary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
             </div>
+
+            <form action="{{ route(auth()->user()->role . '.classrooms.students.store', $classroom) }}" method="POST">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <x-input-label for="student_id" value="Selecione o Aluno" />
+                        <select name="student_id" id="student_id" required class="mt-1 block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-xl shadow-sm">
+                            <option value="">Escolha um aluno da lista...</option>
+                            @foreach($availableStudents as $student)
+                                <option value="{{ $student->id }}">{{ $student->name }} ({{ $student->email }})</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-2 text-xs text-gray-500">Apenas alunos cadastrados na instituição e que ainda não estão nesta turma aparecem aqui.</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-3">
+                    <button type="button" @click="enrollModalOpen = false" class="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+                        Confirmar Vínculo
+                    </button>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
+        
     </div>
 </x-app-layout>

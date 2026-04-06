@@ -20,9 +20,12 @@
                     </button>
                 </form>
 
-                <a href="{{ route(auth()->user()->role . '.classrooms.create') }}" class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest  transition">
-                    + Nova Turma
-                </a>
+                {{-- O botão só aparece se for admin ou super_admin --}}
+@if(auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin')
+    <a href="{{ route(auth()->user()->role . '.classrooms.create') }}" class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest transition">
+        + Nova Turma
+    </a>
+@endif
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
@@ -65,10 +68,13 @@
                                         <a href="{{ route(auth()->user()->role . '.classrooms.show', $classroom) }}" data-tooltip="Gerenciar Turma" class="inline-block transition">
                                             <svg class="w-5 h-5 text-blue-600 hover:text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                         </a>
-
-                                        <a href="{{ route(auth()->user()->role . '.classrooms.edit', $classroom) }}" data-tooltip="Editar Turma" class="inline-block transition">
-                                            <svg class="w-5 h-5 text-amber-500 hover:text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                        </a>
+            
+                                        {{-- O botão de editar só aparece se for admin ou super_admin --}}
+@if(auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin')
+    <a href="{{ route(auth()->user()->role . '.classrooms.edit', $classroom) }}" data-tooltip="Editar Turma" class="inline-block transition">
+        <svg class="w-5 h-5 text-amber-500 hover:text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+    </a>
+@endif
 
                                     </td>
                                 </tr>

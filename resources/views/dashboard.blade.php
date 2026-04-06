@@ -30,7 +30,7 @@
             @else
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
                     <div class="p-6 text-secondary font-semibold">
-                        Bem-vindo ao Painel CodeForce, Professor!
+                        Bem-vindo ao Painel, Professor!
                     </div>
                 </div>
             @endif

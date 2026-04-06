@@ -82,8 +82,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':t
         Route::put('questions/{question}/status', [\App\Http\Controllers\QuestionController::class, 'updateStatus'])->name('questions.update_status');
         Route::post('activities/{activity}/students/{student}/toggle', [\App\Http\Controllers\ActivityController::class, 'toggleStudent'])->name('activities.students.toggle');
         // Espaços reservados para o menu do Professor
-        Route::get('/turmas', function() { return "Tela de Turmas do Professor em construção"; })->name('classrooms.index');
+        // Rotas de Turmas do Professor (Sem permissão para criar ou deletar a turma em si)
+        Route::resource('classrooms', \App\Http\Controllers\ClassroomController::class)->except(['create', 'store', 'destroy']);
         Route::get('/alunos', function() { return "Tela de Alunos do Professor em construção"; })->name('students.index');
+        Route::post('classrooms/{classroom}/students', [\App\Http\Controllers\ClassroomStudentController::class, 'store'])->name('classrooms.students.store');
+        Route::delete('classrooms/{classroom}/students/{student}', [\App\Http\Controllers\ClassroomStudentController::class, 'destroy'])->name('classrooms.students.destroy');
 });
 
 

@@ -8,16 +8,27 @@ use Illuminate\Http\Request;
 
 class LessonController extends Controller
 {
-    public function storeAttendance(Request $request, Lesson $lesson)
+    public function storeAttendance(Request $request, \App\Models\Lesson $lesson)
     {
-        if ($lesson->classroom->teacher_id !== auth()->id()) {
-            abort(403);
-        }
+        $user = auth()->user();
+
+    // 🛡️ CHAVE-MESTRA: 
+    // Só bloqueia se o usuário for um PROFESSOR e a aula não for dele.
+    // Se for ADMIN, ele pula esse 'if' e executa a ação.
+    if ($user->role === 'teacher' && $lesson->classroom->teacher_id !== $user->id) {
+        abort(403, 'Acesso negado. Esta aula pertence a outro professor.');
+    }
+        
+        
 
         $validated = $request->validate([
             'attendance' => 'required|array',
             'attendance.*.status' => 'required|in:present,absent,justified',
         ]);
+
+        if ($lesson->status === 'canceled') {
+        return back()->with('error', 'Não é possível realizar ações em uma aula cancelada.');
+    }
 
         foreach ($validated['attendance'] as $studentId => $data) {
             $lesson->attendances()->updateOrCreate(
@@ -37,10 +48,16 @@ class LessonController extends Controller
 
     public function cancel(Request $request, Lesson $lesson)
     {
-        if ($lesson->classroom->teacher_id !== auth()->id()) {
-            abort(403);
-        }
+        $user = auth()->user();
 
+    // 🛡️ CHAVE-MESTRA: 
+    // Só bloqueia se o usuário for um PROFESSOR e a aula não for dele.
+    // Se for ADMIN, ele pula esse 'if' e executa a ação.
+    if ($user->role === 'teacher' && $lesson->classroom->teacher_id !== $user->id) {
+        abort(403, 'Acesso negado. Esta aula pertence a outro professor.');
+    }
+        
+       
         $validated = $request->validate([
             'justification' => 'required|string',
         ]);
@@ -55,9 +72,16 @@ class LessonController extends Controller
 
     public function register(Request $request, Lesson $lesson)
     {
-        if ($lesson->classroom->teacher_id !== auth()->id()) {
-            abort(403);
-        }
+        $user = auth()->user();
+
+    // 🛡️ CHAVE-MESTRA: 
+    // Só bloqueia se o usuário for um PROFESSOR e a aula não for dele.
+    // Se for ADMIN, ele pula esse 'if' e executa a ação.
+    if ($user->role === 'teacher' && $lesson->classroom->teacher_id !== $user->id) {
+        abort(403, 'Acesso negado. Esta aula pertence a outro professor.');
+    }
+        
+        
 
         $validated = $request->validate([
             'content' => 'required|string',

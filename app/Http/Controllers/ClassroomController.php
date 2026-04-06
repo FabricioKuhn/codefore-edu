@@ -11,22 +11,21 @@ class ClassroomController extends Controller
     /**
      * Listagem de turmas da instituição
      */
-    public function index(Request $request)
+    public function index()
     {
-        // Busca as turmas da instituição do usuário logado
-        $query = Classroom::where('institution_id', $request->user()->institution_id);
+        $user = auth()->user();
 
-        // Sistema de Filtro (Busca)
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%");
-            });
+        // 1. Inicia a busca pegando apenas turmas desta Instituição
+        $query = \App\Models\Classroom::where('institution_id', $user->institution_id);
+
+        // 2. Se for Professor, filtra só as turmas DELE
+        if ($user->role === 'teacher') {
+            $query->where('teacher_id', $user->id);
         }
 
-        // Carrega o professor (user) e conta os alunos matriculados
-        $classrooms = $query->with('teacher')->withCount('students')->paginate(15);
+        // 3. Executa a busca (verifique se você usava ->get() ou ->paginate() e ajuste se necessário)
+        // Aqui estou incluindo a contagem de alunos para não quebrar a tabela
+        $classrooms = $query->withCount('students')->paginate(10); 
 
         return view('classrooms.index', compact('classrooms'));
     }
@@ -50,6 +49,11 @@ class ClassroomController extends Controller
      */
     public function store(Request $request)
     {
+
+        if (auth()->user()->role === 'teacher' && $classroom->teacher_id !== auth()->id()) {
+        abort(403, 'Você não tem permissão para gerenciar os alunos desta turma.');
+    }
+
         $institution = $request->user()->institution;
 
         // 🛡️ TRAVA: Segurança extra caso tentem burlar o formulário
@@ -108,8 +112,23 @@ class ClassroomController extends Controller
 
     public function show(Classroom $classroom)
     {
-        if ($classroom->teacher_id !== auth()->id()) {
-            abort(403);
+
+  
+
+    // Busca alunos da mesma escola que NÃO estão nesta turma
+    $availableStudents = \App\Models\User::where('role', 'student')
+        ->where('institution_id', auth()->user()->institution_id)
+        ->whereDoesntHave('classrooms', function ($query) use ($classroom) {
+            $query->where('classrooms.id', $classroom->id);
+        })
+        ->orderBy('name')
+        ->get();
+
+        $user = auth()->user();
+
+        // Se for professor E a turma não for dele, bloqueia. (Admin passa direto!)
+        if ($user->role === 'teacher' && $classroom->teacher_id !== $user->id) {
+            abort(403, 'Acesso negado. Você não é o professor desta turma.');
         }
 
         // Carregamos os alunos, as aulas (ordenadas) e as atividades
@@ -121,11 +140,18 @@ class ClassroomController extends Controller
             'activities'
         ]);
 
-        return view('classrooms.show', compact('classroom'));
+        return view('classrooms.show', compact('classroom', 'availableStudents'));
     }
 
     public function edit(Classroom $classroom)
     {
+        $user = auth()->user();
+
+        // Se for professor E a turma não for dele, bloqueia
+        if ($user->role === 'teacher' && $classroom->teacher_id !== $user->id) {
+            abort(403, 'Acesso negado. Você só pode editar as suas próprias turmas.');
+        }
+        
         // Busca os professores
         $teachers = \App\Models\User::where('role', 'teacher')
                         ->where('institution_id', auth()->user()->institution_id)
@@ -137,6 +163,14 @@ class ClassroomController extends Controller
 
     public function update(Request $request, Classroom $classroom)
     {
+
+        $user = auth()->user();
+
+        // Se for professor E a turma não for dele, bloqueia
+        if ($user->role === 'teacher' && $classroom->teacher_id !== $user->id) {
+            abort(403, 'Acesso negado. Você só pode editar as suas próprias turmas.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'subject' => 'required|string|max:255',
