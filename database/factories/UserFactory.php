@@ -25,7 +25,7 @@ class UserFactory extends Factory
             // ADICIONAMOS O USERNAME AQUI (Causa do erro atual)
             'username' => strtolower(fake()->userName() . $uniqueSuffix), 
             'email' => strtolower(fake()->userName() . $uniqueSuffix . '@example.com'),
-            
+            'role' => 'owner',
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
