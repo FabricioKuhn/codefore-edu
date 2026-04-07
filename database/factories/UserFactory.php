@@ -16,10 +16,18 @@ class UserFactory extends Factory
 
     public function definition(): array
     {
+        // Criamos um sufixo aleatório para garantir que NADA se repita
+        $uniqueSuffix = '_' . Str::random(6); 
+
         return [
             'name' => fake()->name(),
-            // A mágica acontece aqui: misturamos o nome com um ID único do PHP
-            'email' => fake()->userName() . '_' . uniqid() . '@example.com',
+            
+            // ADICIONAMOS O USERNAME AQUI (Causa do erro atual)
+            'username' => fake()->userName() . $uniqueSuffix, 
+            
+            // MANTEMOS O EMAIL BLINDADO (Que corrigimos antes)
+            'email' => fake()->userName() . $uniqueSuffix . '@example.com',
+            
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
