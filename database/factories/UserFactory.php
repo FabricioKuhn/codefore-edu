@@ -23,10 +23,8 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             
             // ADICIONAMOS O USERNAME AQUI (Causa do erro atual)
-            'username' => fake()->userName() . $uniqueSuffix, 
-            
-            // MANTEMOS O EMAIL BLINDADO (Que corrigimos antes)
-            'email' => fake()->userName() . $uniqueSuffix . '@example.com',
+            'username' => strtolower(fake()->userName() . $uniqueSuffix), 
+            'email' => strtolower(fake()->userName() . $uniqueSuffix . '@example.com'),
             
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),

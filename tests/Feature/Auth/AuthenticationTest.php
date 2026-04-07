@@ -18,17 +18,22 @@ class AuthenticationTest extends TestCase
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
-    {
-        $user = User::factory()->create();
+{
+    // 1. Criamos um usuário e já garantimos que ele tem a role 'professor' (ou a que for padrão)
+    $user = User::factory()->create([
+        'role' => 'professor', // ou 'student', dependendo de qual for sua rota padrão
+    ]);
 
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
+    $response = $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
-    }
+    $this->assertAuthenticated();
+    
+    // 2. Mudamos a expectativa do teste para a rota dinâmica baseada na role!
+    $response->assertRedirect(route($user->role . '.dashboard'));
+}
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
