@@ -21,7 +21,7 @@ class AuthenticationTest extends TestCase
 {
     // 1. Criamos um usuário e já garantimos que ele tem a role 'professor' (ou a que for padrão)
     $user = User::factory()->create([
-        'role' => 'professor', // ou 'student', dependendo de qual for sua rota padrão
+        'role' => 'admin', // ou 'student', dependendo de qual for sua rota padrão
     ]);
 
     $response = $this->post('/login', [
