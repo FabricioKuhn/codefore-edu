@@ -33,4 +33,5 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
-        run: php artisan test
+        # O --without-delay ajuda em alguns ambientes de CI
+        run: php artisan test --parallel=false

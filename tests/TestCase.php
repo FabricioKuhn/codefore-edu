@@ -2,15 +2,19 @@
 
 namespace Tests;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    // Agora sim o trait está importado e a limpeza do banco vai funcionar!
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
         
-        // Isso impede que o Laravel procure pelo manifest.json nos testes
+        // Ignora a compilação do frontend nos testes
         $this->withoutVite();
     }
 }
