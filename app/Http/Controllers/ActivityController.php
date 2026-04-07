@@ -27,119 +27,205 @@ class ActivityController extends Controller
         return view('activities.create', compact('classroom'));
     }
 
+    /**
+     * Salva uma nova Avaliação (Tarefa ou Prova)
+     */
     public function store(Request $request)
     {
-        $classroom = Classroom::findOrFail($request->classroom_id);
-        if ($classroom->teacher_id !== auth()->id()) {
-            abort(403);
-        }
-
-        if ($request->status === 'active' && !auth()->user()->institution->canCreate('active_activities')) { 
-            return back()->with('error', 'Limite de atividades ativas atingido.'); 
-        }
-
-        $validated = $request->validate([
+        // 1. Regras de Validação V2
+        $rules = [
+            'classroom_id' => 'required|exists:classrooms,id',
+            'type' => 'required|in:task,exam',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'base_xp' => 'required|integer|min:1',
-            'coin_conversion_rate' => 'required|numeric|min:0|max:1',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'duration_minutes' => 'nullable|integer|min:1',
-            'status' => 'required|in:draft,active,closed,canceled',
-            'shuffle_options' => 'nullable|boolean',
-        ]);
+            'time_limit_minutes' => 'nullable|integer|min:1',
+        ];
 
-        $classroom->activities()->create([
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'base_xp' => $validated['base_xp'],
-            'coin_conversion_rate' => $validated['coin_conversion_rate'],
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'duration_minutes' => $validated['duration_minutes'],
-            'status' => $validated['status'],
-            'shuffle_options' => $request->boolean('shuffle_options'),
-        ]);
+        // Se for PROVA, exige que as configurações de sorteio sejam preenchidas
+        if ($request->type === 'exam') {
+            $rules['exam_settings'] = 'required|array';
+            $rules['exam_settings.multiple_choice'] = 'required|integer|min:0';
+            $rules['exam_settings.descriptive'] = 'required|integer|min:0';
+        }
 
-        return redirect()->route('classrooms.show', $classroom)
-                         ->with('success', 'Atividade salva com sucesso!');
+        $validated = $request->validate($rules);
+
+        // Define status inicial como rascunho
+        $validated['status'] = 'draft';
+
+        // 2. Salva no banco de dados
+        $activity = \App\Models\Activity::create($validated);
+
+        // 3. Redireciona para o painel de controle (show) da atividade
+        return redirect()->route(auth()->user()->role . '.activities.show', $activity)
+                         ->with('success', 'Avaliação criada! Agora configure as questões.');
     }
 
-    public function update(Request $request, Activity $activity)
+
+    public function edit(\App\Models\Activity $activity)
+{
+    // Trava de segurança (Tenant)
+    if ($activity->classroom->institution_id !== auth()->user()->institution_id) {
+        abort(403, 'Acesso negado.');
+    }
+
+    $classroom = $activity->classroom;
+
+    return view('activities.edit', compact('activity', 'classroom'));
+}
+    /**
+     * Atualiza as configurações da Avaliação
+     */
+    public function update(Request $request, \App\Models\Activity $activity)
     {
-        if ($activity->classroom->teacher_id !== auth()->id()) {
-            abort(403);
+        // Trava de segurança (Garante que só mexa em atividades da própria escola)
+        if ($activity->classroom->institution_id !== auth()->user()->institution_id) {
+            abort(403, 'Acesso Negado.');
         }
 
-        if ($request->status === 'active' && !auth()->user()->institution->canCreate('active_activities')) { 
-            return back()->with('error', 'Limite de atividades ativas atingido.'); 
+        // 1. Regras de Validação V2
+        $rules = [
+            'type' => 'required|in:task,exam',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'base_xp' => 'required|integer|min:1',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'time_limit_minutes' => 'nullable|integer|min:1',
+            'status' => 'required|in:draft,active,in_progress,closed,canceled',
+        ];
+
+        if ($request->type === 'exam') {
+            $rules['exam_settings'] = 'required|array';
+            $rules['exam_settings.multiple_choice'] = 'required|integer|min:0';
+            $rules['exam_settings.descriptive'] = 'required|integer|min:0';
         }
 
-        $validated = $request->validate([
-            'status' => 'sometimes|in:draft,active,closed,canceled',
-            'shuffle_options' => 'sometimes|boolean',
+        $validated = $request->validate($rules);
+
+        // Limpeza de dados: Se o prof mudou de Prova para Tarefa, apagamos o histórico de sorteio
+        if ($request->type === 'task') {
+            $validated['exam_settings'] = null;
+        }
+
+        // 2. Atualiza no banco
+        $activity->update($validated);
+
+        return redirect()->route(auth()->user()->role . '.activities.show', $activity)
+                         ->with('success', 'Configurações da avaliação atualizadas com sucesso!');
+    }
+
+
+    /**
+     * Vincula questões selecionadas do Banco à Avaliação
+     */
+    public function attachQuestions(Request $request, \App\Models\Activity $activity)
+    {
+        // Trava de segurança
+        if ($activity->classroom->institution_id !== auth()->user()->institution_id) {
+            abort(403, 'Acesso Negado.');
+        }
+
+        $request->validate([
+            'question_ids' => 'required|array',
+            'question_ids.*' => 'exists:questions,id'
         ]);
 
-        if ($request->has('shuffle_options')) {
-            $activity->shuffle_options = $request->boolean('shuffle_options');
-        } elseif ($request->has('status') && !$request->has('shuffle_options') && $request->method() !== 'PATCH') {
-            // Se o form envia só status sem shuffle via submit nativo (sem js ajax partial update), 
-            // the checkbox has un-checked itself technically if it was absent, but our frontend toggle submits via form that has hidden status so let's only update what's present if we do a focused push.
-            // A safer approach based on the UI provided is just updating what was sent.
-            // In the UI, the toggle form sends: shuffle_options=1 (if checked) + status. But if unchecked, it sends *only* status!
-            // Wait, the status select and shuffle toggle are different forms!
-        }
+        // O 'syncWithoutDetaching' adiciona as novas questões sem apagar as que já estavam lá
+        $activity->questions()->syncWithoutDetaching($request->question_ids);
 
-        // To handle different forms, we check if they are explicitly present. If the shuffle_options form is submitted, it has 'shuffle_options' or it doesn't. But checkbox omitted = false only if that specific form was submitted.
-        // Looking at the view: the shuffle form has a hidden `status` input. So if `status` is sent, we update status.
-        if ($request->has('status')) {
-            $activity->status = $request->input('status');
-        }
-
-        // Se o toggle de shuffle foi na requisição, ele é 1 or missing. But the status form also misses it! We need a hidden field to identify the form.
-        if ($request->has('shuffle_update')) { // we will add this hidden field to the view form
-            $activity->shuffle_options = $request->boolean('shuffle_options');
-        }
-
-        if ($request->has('start_date')) {
-            $activity->start_date = $request->input('start_date') ?: null;
-        }
-
-        if ($request->has('end_date')) {
-            $activity->end_date = $request->input('end_date') ?: null;
-        }
-
-        if ($request->has('duration_minutes')) {
-            $activity->duration_minutes = $request->input('duration_minutes') ?: null;
-        }
-
-        $activity->save();
-
-        return back()->with('success', 'Configurações atualizadas!');
+        return back()->with('success', count($request->question_ids) . ' questão(ões) vinculada(s) com sucesso!');
     }
 
-    public function toggleStudent(Activity $activity, $studentId)
+    /**
+     * Remove uma questão específica desta Avaliação
+     */
+    public function detachQuestion(\App\Models\Activity $activity, \App\Models\Question $question)
     {
-        if ($activity->classroom->teacher_id !== request()->user()->id) {
-            abort(403);
+        if ($activity->classroom->institution_id !== auth()->user()->institution_id) {
+            abort(403, 'Acesso Negado.');
         }
 
-        $disabledStudents = is_array($activity->disabled_students) 
-            ? $activity->disabled_students 
-            : json_decode($activity->disabled_students, true) ?? [];
+        $activity->questions()->detach($question->id);
 
-        if (in_array($studentId, $disabledStudents)) {
-            // Remove
-            $disabledStudents = array_diff($disabledStudents, [$studentId]);
-        } else {
-            // Add
-            $disabledStudents[] = $studentId;
-        }
-
-        $activity->disabled_students = array_values($disabledStudents); // re-index
-        $activity->save();
-
-        return back()->with('success', 'Status do aluno na atividade atualizado!');
+        return back()->with('success', 'Questão removida desta avaliação.');
     }
+
+    /**
+     * Atualiza o peso de uma questão APENAS para esta avaliação
+     */
+    public function updateQuestionWeight(Request $request, \App\Models\Activity $activity, \App\Models\Question $question)
+    {
+        if ($activity->classroom->institution_id !== auth()->user()->institution_id) {
+            abort(403, 'Acesso Negado.');
+        }
+
+        $request->validate([
+            'weight' => 'required|integer|min:1'
+        ]);
+
+        // Atualiza a coluna 'weight_override' na tabela Pivot (activity_question)
+        $activity->questions()->updateExistingPivot($question->id, [
+            'weight_override' => $request->weight
+        ]);
+
+        return back()->with('success', 'Peso da questão atualizado para esta avaliação!');
+    }
+
+    /**
+     * Habilita ou Desabilita um aluno para fazer esta Avaliação
+     */
+    public function toggleStudent(\App\Models\Activity $activity, \App\Models\User $student)
+    {
+        if ($activity->classroom->institution_id !== auth()->user()->institution_id) {
+            abort(403, 'Acesso Negado.');
+        }
+
+        // Procura se o aluno já tem um registro de controle (submission) criado. 
+        // Se não tiver (porque a prova é nova), o Laravel cria um na hora.
+        $submission = \App\Models\Submission::firstOrCreate(
+            [
+                'activity_id' => $activity->id,
+                'student_id' => $student->id
+            ],
+            [
+                'status' => 'pending',
+                'is_enabled' => true // O padrão ao criar é true
+            ]
+        );
+
+        
+
+        // Inverte o status atual (Se tava true, vira false. Se tava false, vira true)
+        $submission->update([
+            'is_enabled' => !$submission->is_enabled
+        ]);
+
+        $statusMsg = $submission->is_enabled ? 'habilitado' : 'desabilitado (oculto)';
+
+        return back()->with('success', "Aluno {$student->name} foi {$statusMsg} para esta avaliação.");
+    }
+
+    public function updateStudentDeadline(Request $request, \App\Models\Activity $activity, \App\Models\User $student)
+{
+    $request->validate([
+        'custom_deadline' => 'nullable|date|after:now'
+    ]);
+
+    $submission = \App\Models\Submission::firstOrCreate(
+        ['activity_id' => $activity->id, 'student_id' => $student->id],
+        ['status' => 'pending', 'is_enabled' => true]
+    );
+
+    $submission->update([
+        'custom_deadline' => $request->custom_deadline
+    ]);
+
+    return back()->with('success', "Prazo individual de {$student->name} atualizado!");
+}
+
+
 }

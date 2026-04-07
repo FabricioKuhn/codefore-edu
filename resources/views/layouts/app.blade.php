@@ -49,35 +49,40 @@
             
                 <main class="max-w-7xl mx-auto py-6">
     {{-- Bloco de Mensagens de Erro/Sucesso --}}
-    @if(session('error'))
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
+    @if (session('success'))
         <div x-data="{ show: true }" 
              x-init="setTimeout(() => show = false, 5000)" 
              x-show="show" 
-             x-transition 
-             class="mb-4 mx-4 sm:mx-6 lg:px-8 relative">
-            <div class="bg-red-500 text-white px-4 py-3 rounded-lg shadow-md font-bold pr-10">
-                {{ session('error') }}
+             x-transition.duration.500ms
+             class="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl shadow-sm flex justify-between items-center">
+            
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span class="font-bold text-sm tracking-tight">{{ session('success') }}</span>
             </div>
-            <button @click="show = false" class="absolute right-12 top-1/2 -translate-y-1/2 text-white hover:text-red-100 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+
+            <button @click="show = false" class="text-green-400 hover:text-green-600 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
     @endif
 
-    @if(session('success'))
-        <div x-data="{ show: true }" 
-             x-init="setTimeout(() => show = false, 5000)" 
-             x-show="show" 
-             x-transition 
-             class="mb-4 mx-4 sm:mx-6 lg:px-8 relative">
-            <div class="bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-md font-bold pr-10">
-                {{ session('success') }}
+    @if (session('error'))
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 8000)" x-show="show" x-transition.duration.500ms
+             class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-sm flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                <span class="font-bold text-sm tracking-tight">{{ session('error') }}</span>
             </div>
-            <button @click="show = false" class="absolute right-12 top-1/2 -translate-y-1/2 text-white hover:text-emerald-100 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
+            <button @click="show = false" class="text-red-400 hover:text-red-600">&times;</button>
         </div>
     @endif
+</div>
 
     {{ $slot }}
 </main>

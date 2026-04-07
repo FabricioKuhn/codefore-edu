@@ -14,7 +14,11 @@ class Submission extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
+        'is_enabled' => 'boolean',
+        'custom_deadline' => 'datetime',
+        'started_at' => 'datetime',
         'submitted_at' => 'datetime',
+        'answers' => 'array',
     ];
 
     public function activity(): BelongsTo

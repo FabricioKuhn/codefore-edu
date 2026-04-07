@@ -1,439 +1,427 @@
 <x-app-layout>
     <x-slot name="header">
         <x-breadcrumbs :links="[
-    ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')],
-    ['name' => 'Minhas Turmas', 'url' => route(auth()->user()->role . '.classrooms.index')],
-    ['name' => $activity->classroom->name, 'url' => route(auth()->user()->role . '.classrooms.show', $activity->classroom)],
-    ['name' => $activity->title, 'url' => '#']
-]" />
-        <div class="flex justify-between items-center" x-data>
-            <h2 class="text-xl font-semibold text-secondary leading-tight">
-                Atividade: {{ $activity->title }}
+            ['name' => 'Home', 'url' => route(auth()->user()->role . '.dashboard')],
+            ['name' => 'Minhas Turmas', 'url' => route(auth()->user()->role . '.classrooms.index')],
+            ['name' => $activity->classroom->name, 'url' => route(auth()->user()->role . '.classrooms.show', $activity->classroom)],
+            ['name' => $activity->title, 'url' => '#']
+        ]" />
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2 gap-4">
+            <h2 class="text-xl font-semibold text-secondary leading-tight flex items-center gap-3">
+                <span class="bg-gray-800 text-white px-3 py-1 rounded text-[10px] uppercase font-black tracking-widest">
+                    {{ $activity->type === 'exam' ? 'Prova' : 'Tarefa' }}
+                </span>
+                {{ $activity->title }}
             </h2>
-            <x-primary-button type="button" @click="$dispatch('open-create-modal')">Nova Questão</x-primary-button>
+            
+            <div class="flex items-center gap-3" x-data>
+                <x-primary-button type="button" @click="$dispatch('open-import-modal')" class="bg-gray-800 hover:bg-gray-700">
+                    + Vincular do Banco
+                </x-primary-button>
+                <a href="{{ route(auth()->user()->role . '.questions.create') }}">
+                    <x-primary-button type="button" class="bg-primary hover:brightness-110">
+                        Nova Questão
+                    </x-primary-button>
+                </a>
+            </div>
         </div>
     </x-slot>
 
-    <div x-data="{ lightboxOpen: false, lightboxImg: '' }">
-        <div class="py-12" x-data="questionEngine()" @open-create-modal.window="openForCreate()">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if (session('success'))
-                <div class="mb-4 bg-green-100 border border-codeforce-green text-primary px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
+    <div x-data="{ 
+    lightboxOpen: false, 
+    lightboxImg: '', 
+    importModalOpen: false,
+    deadlineModalOpen: false,
+    selectedStudent: { name: '', id: '', currentDeadline: '' },
+    deadlineAction: ''
+}" @open-import-modal.window="importModalOpen = true">
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            <div class="mb-6 bg-white shadow-sm sm:rounded-lg border border-gray-100 p-6">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-                    <div>
-                        <h3 class="text-2xl font-bold text-secondary">{{ $activity->title }}</h3>
-                        <p class="text-gray-500 mt-2">{{ $activity->description ?? 'Sem descrição' }}</p>
-                    </div>
-                    <div class="mt-4 lg:mt-0 flex flex-col sm:flex-row items-center gap-6">
-                        <div class="text-center bg-gray-100 p-4 rounded-lg flex flex-col gap-2 shadow-sm border border-gray-200">
-                            <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">XP Base</span>
-                            <div class="text-2xl font-mono font-black text-primary">{{ $activity->base_xp }}</div>
+                <div class="mb-6 bg-white shadow-sm sm:rounded-xl border border-gray-100 p-8">
+                    <div class="flex flex-col lg:flex-row justify-between items-start mb-6">
+                        <div class="max-w-3xl">
+                            <h3 class="text-2xl font-black text-secondary">{{ $activity->title }}</h3>
+                            <p class="text-gray-500 mt-2 font-medium leading-relaxed">{{ $activity->description ?? 'Sem descrição fornecida.' }}</p>
+                        </div>
+                        <div class="mt-4 lg:mt-0 flex gap-4">
+                            <div class="text-center bg-gray-50 px-6 py-4 rounded-xl border border-gray-100">
+                                <span class="text-[10px] uppercase text-gray-400 font-black tracking-widest block mb-1">XP Base</span>
+                                <div class="text-2xl font-black text-primary">{{ $activity->base_xp }}</div>
+                            </div>
+                            @if($activity->time_limit_minutes)
+                            <div class="text-center bg-gray-50 px-6 py-4 rounded-xl border border-gray-100">
+                                <span class="text-[10px] uppercase text-gray-400 font-black tracking-widest block mb-1">Tempo Limite</span>
+                                <div class="text-2xl font-black text-secondary">{{ $activity->time_limit_minutes }}m</div>
+                            </div>
+                            @endif
                         </div>
                     </div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between">
+                        <div class="flex gap-8">
+                            <div>
+                                <span class="text-[10px] uppercase font-black text-gray-400 tracking-widest block mb-1">Status Atual</span>
+                                <span class="text-sm font-bold {{ $activity->status === 'active' ? 'text-green-600' : 'text-gray-700' }} uppercase">
+                                    {{ $activity->status_label }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase font-black text-gray-400 tracking-widest block mb-1">Início</span>
+                                <span class="text-sm font-bold text-secondary">{{ $activity->start_date ? $activity->start_date->format('d/m/Y H:i') : 'Não definido' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase font-black text-gray-400 tracking-widest block mb-1">Prazo Final</span>
+                                <span class="text-sm font-bold text-secondary">{{ $activity->end_date ? $activity->end_date->format('d/m/Y H:i') : 'Não definido' }}</span>
+                            </div>
+                        </div>
+                        <a href="{{ route(auth()->user()->role . '.activities.edit', $activity) }}" class="text-primary hover:underline text-xs font-black uppercase tracking-widest">
+                            Editar Configurações
+                        </a>
+                    </div>
                 </div>
 
-                <!-- Configurações Rápidas -->
-                <form action="{{ route(auth()->user()->role . '.activities.update', $activity->id) }}" method="POST" class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap gap-4 items-end">
-                    @csrf @method('PUT')
-                    
-                    <div class="flex-1 min-w-[150px]">
-                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Status</label>
-                        <select name="status" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm font-bold text-gray-700">
-                            <option value="draft" {{ $activity->status == 'draft' ? 'selected' : '' }}>Rascunho</option>
-                            <option value="active" {{ $activity->status == 'active' ? 'selected' : '' }}>Ativa</option>
-                            <option value="closed" {{ $activity->status == 'closed' ? 'selected' : '' }}>Encerrada</option>
-                            <option value="canceled" {{ $activity->status == 'canceled' ? 'selected' : '' }}>Cancelada</option>
-                        </select>
+                <div class="flex items-center justify-between mb-4 mt-10 px-2">
+                    <h3 class="text-xl font-black text-secondary uppercase tracking-widest">
+                        {{ $activity->type === 'exam' ? 'Pool de Questões (Sorteio)' : 'Questões da Tarefa' }}
+                    </h3>
+                </div>
+
+                @if($activity->type === 'exam')
+                    <div class="bg-purple-50 border border-purple-100 rounded-xl p-4 mb-6 flex gap-6 text-sm">
+                        <div><strong class="text-purple-800">Sorteio Definido:</strong></div>
+                        <div class="text-purple-700">{{ $activity->exam_settings['multiple_choice'] ?? 0 }} de Múltipla Escolha</div>
+                        <div class="text-purple-700">{{ $activity->exam_settings['descriptive'] ?? 0 }} Descritivas</div>
+                        <div class="text-xs text-purple-500 ml-auto pt-1">(Os alunos receberão aleatoriamente dessa quantidade a partir das questões abaixo)</div>
+                    </div>
+                @endif
+                
+                <div class="bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden mb-12">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ordem</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Enunciado</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Tipo</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Peso Nesta Prova</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @forelse ($activity->questions as $index => $question)
+                            <tr class="hover:bg-gray-50/50 transition">
+                                <td class="px-6 py-4 font-black text-gray-300 text-xs">{{ $index + 1 }}</td>
+                                <td class="px-6 py-4">
+    {{-- Enunciado --}}
+    <div class="text-sm font-bold text-secondary line-clamp-2" title="{{ strip_tags($question->statement) }}">
+        {!! strip_tags($question->statement) !!}
+    </div>
+    
+    {{-- Linha de informações: ID + Tags --}}
+    <div class="flex flex-wrap items-center gap-2 mt-2">
+        <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest shrink-0">
+            ID Banco: #{{ $question->id }}
+        </span>
+
+        @if($question->tags && count($question->tags) > 0)
+            <div class="flex flex-wrap gap-1">
+                @foreach($question->tags as $tag)
+                    <span class="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border border-gray-200">
+                        {{ $tag }}
+                    </span>
+                @endforeach
+            </div>
+        @endif
+    </div>
+</td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest {{ $question->type === 'multiple_choice' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600' }}">
+                                        {{ $question->type === 'multiple_choice' ? 'Múltipla Escolha' : 'Descritiva' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {{-- Formulário para alterar o peso SÓ NESTA PROVA --}}
+                                    <form action="{{ route(auth()->user()->role . '.activities.questions.update_weight', [$activity, $question]) }}" method="POST" class="flex items-center justify-center gap-2">
+                                        @csrf @method('PATCH')
+                                        <input type="number" name="weight" value="{{ $question->pivot->weight_override ?? $question->default_weight }}" class="w-16 text-center text-xs font-bold border-gray-200 rounded py-1 px-2 focus:ring-primary focus:border-primary" min="1">
+                                        <button type="submit" class="text-[10px] text-gray-400 hover:text-primary uppercase font-black" title="Salvar Novo Peso">OK</button>
+                                    </form>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <form action="{{ route(auth()->user()->role . '.activities.questions.detach', [$activity, $question]) }}" method="POST">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="text-red-400 hover:text-red-600 font-black text-[10px] uppercase tracking-widest transition">Remover</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <p class="text-gray-400 font-bold text-sm mb-4">Nenhuma questão vinculada a esta avaliação ainda.</p>
+                                    <button @click="$dispatch('open-import-modal')" class="text-primary hover:underline text-xs font-black uppercase tracking-widest">Vincular do Banco</button>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex items-center justify-between mb-4 px-2">
+                    <h3 class="text-xl font-black text-secondary uppercase tracking-widest">Painel de Alunos e Avaliação</h3>
+                </div>
+                
+                <div class="bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Aluno</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Prazo Individual</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Nota Final</th>
+                                <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @forelse($activity->classroom->students ?? [] as $student)
+                            @php
+                                // Busca o controle do aluno na tabela submissions
+                                $submission = $activity->submissions->where('student_id', $student->id)->first();
+                                $isEnabled = $submission ? $submission->is_enabled : true;
+                                $status = $submission ? $submission->status : 'pending';
+                                $deadline = $submission && $submission->custom_deadline ? $submission->custom_deadline->format('d/m/Y H:i') : 'Padrão';
+                            @endphp
+                            
+                            <tr class="hover:bg-gray-50/50 transition {{ !$isEnabled ? 'bg-gray-50 opacity-60' : '' }}">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-bold text-secondary {{ !$isEnabled ? 'line-through text-gray-400' : '' }}">{{ $student->name }}</div>
+                                    <div class="text-[10px] text-gray-400 font-mono mt-1">{{ str_pad($student->id, 5, '0', STR_PAD_LEFT) }}</div>
+                                </td>
+                                
+                                <td class="px-6 py-4 text-center">
+                                    @if(!$isEnabled)
+                                        <span class="bg-red-50 text-red-600 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-red-100">Desabilitado</span>
+                                    @else
+                                        @switch($status)
+                                            @case('pending')
+                                                <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest">Aguardando Início</span>
+                                                @break
+                                            @case('in_progress')
+                                                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-blue-100 flex items-center justify-center gap-1">
+                                                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Em Andamento
+                                                </span>
+                                                @break
+                                            @case('waiting_evaluation')
+                                                <span class="bg-yellow-50 text-yellow-600 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-yellow-100">Avaliar</span>
+                                                @break
+                                            @case('evaluated')
+                                                <span class="bg-green-50 text-green-600 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-green-100">Avaliado</span>
+                                                @break
+                                        @endswitch
+                                    @endif
+                                </td>
+                                
+                                <td class="px-6 py-4 text-center text-xs font-bold {{ $deadline !== 'Padrão' ? 'text-primary' : 'text-gray-400' }}">
+                                    {{ $deadline }}
+                                </td>
+                                
+                                <td class="px-6 py-4 text-center font-black text-secondary">
+                                    @if($status === 'evaluated')
+                                        {{ $submission->earned_xp ?? 0 }} XP
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                
+                                <td class="px-6 py-4 text-right flex items-center justify-end gap-3">
+                                    @if($status === 'waiting_evaluation')
+                                        <button type="button" class="text-primary hover:text-blue-700 font-black text-[10px] uppercase tracking-widest transition" title="Corrigir Prova">Corrigir</button>
+                                    @elseif($status === 'evaluated')
+                                        <button type="button" class="text-gray-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition" title="Ver Gabarito Final">Gabarito</button>
+                                    @endif
+                                    
+                                    <button type="button" 
+    @click="
+        selectedStudent = { 
+            name: '{{ $student->name }}', 
+            id: '{{ $student->id }}', 
+            currentDeadline: '{{ $submission && $submission->custom_deadline ? $submission->custom_deadline->format('Y-m-d\TH:i') : '' }}' 
+        };
+        deadlineAction = '{{ route(auth()->user()->role . '.activities.students.deadline', [$activity, $student]) }}';
+        deadlineModalOpen = true;
+    "
+    class="text-gray-400 hover:text-blue-500 font-black text-[10px] uppercase tracking-widest transition" 
+    title="Estender Prazo">
+    Prazo
+</button>
+                                    
+                                    <form action="{{ route(auth()->user()->role . '.activities.students.toggle', [$activity, $student]) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <button type="submit" class="{{ $isEnabled ? 'text-gray-400 hover:text-red-500' : 'text-green-500 hover:text-green-700' }} font-black text-[10px] uppercase tracking-widest transition">
+                                            {{ $isEnabled ? 'Ocultar' : 'Habilitar' }}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-400 font-bold text-sm">Nenhum aluno matriculado nesta turma.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <div x-show="importModalOpen" 
+     x-cloak 
+     x-data="{ 
+        search: '',
+        // Transformamos a coleção do PHP em um objeto JS para o Alpine
+        allQuestions: {{ json_encode(\App\Models\Question::where('institution_id', auth()->user()->institution_id)
+                            ->where('status', true)
+                            ->whereNotIn('id', $activity->questions->pluck('id'))
+                            ->latest()
+                            ->get()) }},
+        
+        // Função que faz o filtro dinâmico
+        get filteredQuestions() {
+            if (this.search === '') return this.allQuestions;
+            
+            const s = this.search.toLowerCase();
+            return this.allQuestions.filter(q => {
+                const statementMatch = q.statement.toLowerCase().includes(s);
+                // Verifica se alguma tag contém o termo de busca
+                const tagsMatch = q.tags ? q.tags.some(tag => tag.toLowerCase().includes(s)) : false;
+                
+                return statementMatch || tagsMatch;
+            });
+        }
+     }"
+     class="fixed inset-0 z-50 overflow-y-auto">
+    
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div x-show="importModalOpen" x-transition.opacity class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm" @click="importModalOpen = false"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+        <div x-show="importModalOpen" 
+             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+             class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle max-w-4xl w-full">
+             
+            <div class="bg-white px-8 pt-8 pb-6">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <h3 class="text-xl font-black text-secondary uppercase tracking-widest">Vincular do Banco</h3>
+                    <button @click="importModalOpen = false" class="text-gray-400 hover:text-gray-600 font-bold text-2xl">&times;</button>
+                </div>
+
+                <div class="mb-6">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </span>
+                        <input type="text" 
+                               x-model="search" 
+                               placeholder="Pesquisar por enunciado ou tag (ex: MATEMÁTICA)..." 
+                               class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all">
+                    </div>
+                </div>
+
+                <form action="{{ route(auth()->user()->role . '.activities.questions.attach', $activity) }}" method="POST">
+                    @csrf
+                    <div class="max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-4 py-3 w-10"></th>
+                                    <th class="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">ID</th>
+                                    <th class="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Questão / Tags</th>
+                                    <th class="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Tipo</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <template x-for="q in filteredQuestions" :key="q.id">
+                                    <tr class="hover:bg-blue-50/50 cursor-pointer transition" @click="document.getElementById('q_' + q.id).click()">
+                                        <td class="px-4 py-4 text-center">
+                                            <input type="checkbox" :id="'q_' + q.id" name="question_ids[]" :value="q.id" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer" @click.stop>
+                                        </td>
+                                        <td class="px-4 py-4 text-xs font-black text-gray-300" x-text="'#' + q.id"></td>
+                                        <td class="px-4 py-4">
+                                            <div class="text-sm font-bold text-secondary line-clamp-1" x-text="q.statement.replace(/<[^>]*>?/gm, '')"></div>
+                                            
+                                            <div class="flex flex-wrap gap-1 mt-1.5" x-show="q.tags && q.tags.length > 0">
+                                                <template x-for="tag in q.tags">
+                                                    <span class="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200 text-[8px] font-black uppercase tracking-tighter" x-text="tag"></span>
+                                                </template>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 text-center">
+                                            <span :class="q.type === 'multiple_choice' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'" 
+                                                  class="px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest"
+                                                  x-text="q.type === 'multiple_choice' ? 'Múltipla' : 'Descritiva'">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </template>
+
+                                <template x-if="filteredQuestions.length === 0">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-12 text-center text-gray-400 font-bold text-sm">
+                                            Nenhuma questão encontrada para "<span x-text="search"></span>".
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div class="flex-1 min-w-[180px]">
-                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Data Início</label>
-                        <input type="datetime-local" name="start_date" value="{{ $activity->start_date ? \Carbon\Carbon::parse($activity->start_date)->format('Y-m-d\TH:i') : '' }}" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm">
-                    </div>
-
-                    <div class="flex-1 min-w-[180px]">
-                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Data Término</label>
-                        <input type="datetime-local" name="end_date" value="{{ $activity->end_date ? \Carbon\Carbon::parse($activity->end_date)->format('Y-m-d\TH:i') : '' }}" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm">
-                    </div>
-
-                    <div class="flex-1 min-w-[120px]">
-                        <label class="block text-[10px] uppercase text-gray-500 font-bold tracking-wider mb-1">Tempo (Min)</label>
-                        <input type="number" name="duration_minutes" value="{{ $activity->duration_minutes }}" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm" placeholder="Ilimitado">
-                    </div>
-
-                    <div class="flex-none flex items-center mb-1 px-2">
-                        <label class="relative inline-flex items-center cursor-pointer" title="Embaralhar Respostas das Questões">
-                            <input type="checkbox" name="shuffle_options" value="1" class="sr-only peer" {{ $activity->shuffle_options ? 'checked' : '' }}>
-                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                            <span class="ml-2 text-[10px] font-bold text-gray-700 uppercase tracking-widest leading-tight">Múltipla Escolha<br>Embaralhada</span>
-                        </label>
-                    </div>
-
-                    <div class="flex-none">
-                        <x-primary-button class="h-[42px] px-6">Salvar</x-primary-button>
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
+                        <button type="button" @click="importModalOpen = false" class="px-6 py-2 text-xs font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition">Cancelar</button>
+                        <x-primary-button type="submit" class="px-10 py-3 shadow-lg shadow-primary/20">
+                            Vincular Selecionadas
+                        </x-primary-button>
                     </div>
                 </form>
             </div>
-
-            <div class="flex items-center justify-between mb-4 px-2">
-                <h3 class="text-xl font-bold text-secondary">Questões da Atividade</h3>
-            </div>
-            
-            <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 overflow-x-auto mb-8">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">#</th>
-                            <th scope="col" class="px-6 py-3">Enunciado</th>
-                            <th scope="col" class="px-6 py-3 text-center">Tipo</th>
-                            <th scope="col" class="px-6 py-3 text-center">Peso</th>
-                            <th scope="col" class="px-6 py-3 text-center">Anexo</th>
-                            <th scope="col" class="px-6 py-3 text-center">Botão</th>
-                            <th scope="col" class="px-6 py-3 text-center">Respostas</th>
-                            <th scope="col" class="px-6 py-3 text-center">Status</th>
-                            <th scope="col" class="px-6 py-3 text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($activity->questions as $index => $question)
-                        <tr class="bg-white border-b hover:bg-gray-50 transition {{ $question->status ? '' : 'opacity-60' }}">
-                            <td class="px-6 py-4 font-bold text-secondary">{{ $index + 1 }}</td>
-                            <td class="px-6 py-4 text-gray-900 font-medium" title="{{ $question->statement }}">
-                                {{ \Illuminate\Support\Str::limit($question->statement, 35) }}
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
-                                    {{ $question->type === 'multiple_choice' ? 'Múltipla' : 'Descritiva' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-center font-bold text-primary">{{ $question->weight }}</td>
-                            <td class="px-6 py-4 text-center">
-                                @php $hasImage = collect($question->attachments)->contains('type', 'image'); @endphp
-                                @if($hasImage)
-                                    <span class="text-green-600 font-bold">&#10003;</span>
-                                @else
-                                    <span class="text-gray-300">-</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                @php $hasBtn = collect($question->attachments)->contains('type', 'link_button'); @endphp
-                                @if($hasBtn)
-                                    <span class="text-green-600 font-bold">&#10003;</span>
-                                @else
-                                    <span class="text-gray-300">-</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-center text-xs font-semibold text-primary">
-                                {{ \App\Models\SubmissionAnswer::where('question_id', $question->id)->count() }} envios
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                @if($question->status)
-                                    <form action="{{ route(auth()->user()->role . '.questions.update_status', $question->id) }}" method="POST">
-                                        @csrf @method('PUT')
-                                        <button type="submit" class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:brightness-90 transition" title="Desabilitar">Ativa</button>
-                                    </form>
-                                @else
-                                    <form action="{{ route(auth()->user()->role . '.questions.update_status', $question->id) }}" method="POST">
-                                        @csrf @method('PUT')
-                                        <button type="submit" class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:brightness-90 transition" title="Habilitar">Inativa</button>
-                                    </form>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <button type="button" @click.prevent="openForEdit({{ $question->toJson() }}, {{ $question->options->toJson() }})" class="text-white bg-primary px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm">Editar</button>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="9" class="px-6 py-8 text-center text-gray-500">Nenhuma questão cadastrada para esta atividade ainda.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="flex items-center justify-between mb-4 px-2 mt-10">
-                <h3 class="text-xl font-bold text-secondary">Alunos Vinculados</h3>
-            </div>
-            
-            <div class="bg-white shadow-sm sm:rounded-lg border border-gray-100 overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">Matrícula</th>
-                            <th scope="col" class="px-6 py-3">Nome</th>
-                            <th scope="col" class="px-6 py-3 text-center">Respondeu</th>
-                            <th scope="col" class="px-6 py-3 text-center">Nota</th>
-                            <th scope="col" class="px-6 py-3 text-center">Prazo</th>
-                            <th scope="col" class="px-6 py-3 text-center">Status</th>
-                            <th scope="col" class="px-6 py-3 text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            $disabledStudents = is_array($activity->disabled_students) ? $activity->disabled_students : json_decode($activity->disabled_students, true) ?? [];
-                        @endphp
-                        @forelse($activity->classroom->students ?? [] as $student)
-                        @php
-                            $isDisabled = in_array($student->id, $disabledStudents);
-                        @endphp
-                        <tr class="bg-white border-b hover:bg-gray-50 transition {{ $isDisabled ? 'opacity-50' : '' }}">
-                            <td class="px-6 py-4 text-secondary font-mono">{{ str_pad($student->id, 5, '0', STR_PAD_LEFT) }}</td>
-                            <td class="px-6 py-4 font-bold text-gray-900 {{ $isDisabled ? 'line-through text-gray-400' : '' }}">{{ $student->name }}</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded shadow-sm text-[10px] uppercase font-bold">Não</span>
-                            </td>
-                            <td class="px-6 py-4 text-center font-bold text-primary">-</td>
-                            <td class="px-6 py-4 text-center">{{ $activity->end_date ? \Carbon\Carbon::parse($activity->end_date)->format('d/m/Y') : 'Sem Prazo' }}</td>
-                            <td class="px-6 py-4 text-center">
-                                @if($isDisabled)
-                                    <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Desabilitado</span>
-                                @else
-                                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Habilitado</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-center flex justify-center gap-2">
-                                <button type="button" class="text-white bg-primary px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Avaliar">Avaliar</button>
-                                <button type="button" class="text-white bg-blue-500 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Prorrogar Prazo">Prazo</button>
-                                @if($isDisabled)
-                                    <form action="{{ route(auth()->user()->role . '.activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="text-white bg-green-600 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Habilitar">Habilitar</button>
-                                    </form>
-                                @else
-                                    <form action="{{ route(auth()->user()->role . '.activities.students.toggle', ['activity' => $activity->id, 'student' => $student->id]) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="text-white bg-red-500 px-3 py-1 rounded text-xs font-bold transition-all duration-200 hover:brightness-90 shadow-sm" title="Desabilitar">Ocultar</button>
-                                    </form>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="px-6 py-8 text-center text-gray-500">Nenhum aluno vinculado a esta turma.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Modal Integrado (Criar / Editar) -->
-        <div x-show="openModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                
-                <div x-show="openModal" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="openModal = false"></div>
-
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                <div x-show="openModal" 
-                     x-transition:enter="ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                     x-transition:leave="ease-in duration-200"
-                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                     class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle max-w-[800px] w-full">
-                     
-                    <form :action="actionUrl" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <!-- Simula PUT no Laravel caso method =='PUT' -->
-                        <template x-if="method === 'PUT'">
-                            <input type="hidden" name="_method" value="PUT">
-                        </template>
-
-                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                            <h3 class="text-lg leading-6 font-medium text-secondary mb-4" id="modal-title" x-text="method === 'POST' ? 'Nova Questão' : 'Editar Questão'"></h3>
-
-                            <!-- Tipo da Questão -->
-                            <div class="mb-4">
-                                <x-input-label for="type" value="Tipo de Questão" />
-                                <select id="type" name="type" x-model="form.type" class="block mt-1 w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm text-sm">
-                                    <option value="multiple_choice">Múltipla Escolha</option>
-                                    <option value="descriptive">Descritiva (Correção por IA)</option>
-                                </select>
-                                <x-input-error :messages="$errors->get('type')" class="mt-2" />
-                            </div>
-
-                            <!-- Campos de Mídia -->
-                            <div class="mb-4 p-4 border border-dashed border-gray-300 rounded-md bg-gray-50">
-                                <h4 class="text-sm font-bold text-gray-700 mb-3">Mídia Alternativa (Opcional)</h4>
-                                
-                                <div class="mb-3">
-                                    <x-input-label for="images" value="Imagens da Questão (Permite Selecionar Várias)" />
-                                    <!-- Add [] to name for multiple files -->
-                                    <input type="file" id="images" name="images[]" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700" @change="imagePreviews = []; Array.from($event.target.files).forEach(file => imagePreviews.push(URL.createObjectURL(file)))">
-                                    <x-input-error :messages="$errors->get('images.*')" class="mt-2" />
-                                    <div class="flex flex-wrap gap-2 mt-2" x-show="imagePreviews.length > 0">
-                                        <template x-for="src in imagePreviews">
-                                            <img :src="src" class="w-20 h-20 object-cover rounded-md border border-gray-300 shadow-sm" alt="Preview">
-                                        </template>
-                                        <template x-if="editing && currentQuestion.attachments">
-                                            <div class="flex flex-wrap gap-2 mt-2">
-                                                <template x-for="(attachment, index) in currentQuestion.attachments.filter(a => a.type === 'image')" :key="index">
-                                                    <div class="relative group">
-                                                        <img :src="attachment.url" 
-                                                            class="w-20 h-20 object-cover rounded-md border border-gray-300 shadow-sm opacity-60" 
-                                                            alt="Imagem existente">
-                                                        <span class="absolute top-1 right-1 text-xs bg-gray-600 text-white p-1 rounded-full leading-none">Salva</span>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <x-input-label for="button_text" value="Texto do Botão de Link" />
-                                        <x-text-input id="button_text" class="block mt-1 w-full" type="text" name="button_text" x-model="form.button_text" placeholder="Ex: Acessar Material" />
-                                        <x-input-error :messages="$errors->get('button_text')" class="mt-2" />
-                                    </div>
-                                    <div>
-                                        <x-input-label for="button_url" value="URL do Botão (Abre em nova guia)" />
-                                        <x-text-input id="button_url" class="block mt-1 w-full" type="url" name="button_url" x-model="form.button_url" placeholder="https://..." />
-                                        <x-input-error :messages="$errors->get('button_url')" class="mt-2" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Enunciado -->
-                            <div class="mb-4">
-                                <x-input-label for="statement" value="Enunciado" />
-                                <!-- Removed native required so browser won't silently block -->
-                                <textarea id="statement" name="statement" x-model="form.statement" class="block mt-1 w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" rows="3"></textarea>
-                                <x-input-error :messages="$errors->get('statement')" class="mt-2" />
-                            </div>
-
-                            <!-- Peso -->
-                            <div class="mb-4 w-full md:w-1/3">
-                                <x-input-label for="weight" value="Peso da Questão" />
-                                <!-- Removed native required -->
-                                <x-text-input id="weight" class="block mt-1 w-full" type="number" name="weight" x-model="form.weight" min="1" />
-                                <x-input-error :messages="$errors->get('weight')" class="mt-2" />
-                            </div>
-
-                            <!-- Bloco Múltipla Escolha -->
-                            <div x-show="form.type === 'multiple_choice'" class="mt-4 border border-gray-200 rounded-md p-4 bg-gray-50">
-                                <h4 class="font-bold text-secondary mb-4">Alternativas (Marque a correta)</h4>
-                                
-                                <template x-for="(opt, index) in [0, 1, 2, 3]" :key="index">
-                                    <div class="flex items-center gap-4 mb-3">
-                                        <input type="radio" name="correct_option" :value="index" x-model="form.correct_option" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
-                                        <x-text-input class="block w-full" type="text" x-bind:name="'options['+index+']'" x-model="form.options[index]" placeholder="Alternativa" />
-                                    </div>
-                                </template>
-                                <x-input-error :messages="$errors->get('options')" class="mt-2" />
-                                <x-input-error :messages="$errors->get('correct_option')" class="mt-2" />
-                            </div>
-
-                            <!-- Bloco Descritiva -->
-                            <div x-cloak x-show="form.type === 'descriptive'" class="mt-4 border border-gray-200 rounded-md p-4 bg-gray-50">
-                                <x-input-label for="expected_answer" value="Gabarito Esperado (Para a IA Corrigir)" />
-                                <!-- Removed native required -->
-                                <textarea id="expected_answer" name="expected_answer" x-model="form.expected_answer" class="block mt-1 w-full border-gray-300 focus:border-primary focus:ring-primary rounded-md shadow-sm" rows="4"></textarea>
-                                <p class="text-xs text-gray-500 mt-1">Este texto será base para testes IA.</p>
-                                <x-input-error :messages="$errors->get('expected_answer')" class="mt-2" />
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200">
-                            <x-primary-button class="w-full sm:ml-3 sm:w-auto">
-                                Salvar Questão
-                            </x-primary-button>
-                            <button type="button" @click="openModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:max-w-4xl w-full sm:text-sm">
-                                Cancelar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lightbox Component -->
-        <div x-show="lightboxOpen" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm" @click="lightboxOpen = false" x-transition.opacity>
-            <img :src="lightboxImg" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" @click.stop>
-            <button type="button" @click="lightboxOpen = false" class="absolute top-4 right-4 text-white text-3xl font-bold">&times;</button>
         </div>
     </div>
+</div>
 
-    <!-- Script de gerencialmento de estado do formulário via Alpine -->
-    <script>
-        function questionEngine() {
-            return {
-                openModal: false,
-                imagePreviews: [],
-                actionUrl: '{{ route(auth()->user()->role . '.activities.questions.store', $activity) }}',
-                method: 'POST',
-                form: {
-                    type: 'multiple_choice',
-                    statement: '',
-                    weight: 1,
-                    expected_answer: '',
-                    options: ['', '', '', ''],
-                    correct_option: 0,
-                    button_text: '',
-                    button_url: ''
-                },
-                init() {
-                    @if($errors->any())
-                        this.openModal = true;
-                        this.form.type = {!! json_encode(old('type', 'multiple_choice')) !!};
-                        this.form.statement = {!! json_encode(old('statement', '')) !!};
-                        this.form.weight = {!! json_encode(old('weight', 1)) !!};
-                        this.form.expected_answer = {!! json_encode(old('expected_answer', '')) !!};
-                        this.form.options = {!! json_encode(old('options', ['', '', '', ''])) !!};
-                        this.form.correct_option = {!! json_encode(old('correct_option', 0)) !!};
-                        this.form.button_text = {!! json_encode(old('button_text', '')) !!};
-                        this.form.button_url = {!! json_encode(old('button_url', '')) !!};
-                    @endif
-                },
-                openForCreate() {
-                    this.method = 'POST';
-                    this.actionUrl = '{{ route(auth()->user()->role . '.activities.questions.store', $activity) }}';
-                    this.imagePreviews = [];
-                    this.form = {
-                        type: 'multiple_choice',
-                        statement: '',
-                        weight: 1,
-                        expected_answer: '',
-                        options: ['', '', '', ''],
-                        correct_option: 0,
-                        button_text: '',
-                        button_url: ''
-                    };
-                    this.openModal = true;
-                },
-                openForEdit(q, relationOptions) {
-                    this.method = 'PUT';
-                    this.actionUrl = '/questions/' + q.id;
-                    this.imagePreviews = [];
-                    this.form.type = q.type;
-                    this.form.statement = q.statement;
-                    this.form.weight = q.weight;
-                    this.form.expected_answer = q.expected_answer || '';
-                    
-                    if (relationOptions && relationOptions.length > 0) {
-                        // Resgata o Array exato salvo
-                        this.form.options = relationOptions.map(o => o.content);
-                        let correctIdx = relationOptions.findIndex(o => o.is_correct);
-                        this.form.correct_option = correctIdx !== -1 ? correctIdx : 0;
-                    } else {
-                        this.form.options = ['', '', '', ''];
-                        this.form.correct_option = 0;
-                    }
+<div x-show="deadlineModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div x-show="deadlineModalOpen" x-transition.opacity class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm" @click="deadlineModalOpen = false"></div>
 
-                    this.form.button_text = '';
-                    this.form.button_url = '';
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-                    this.openModal = true;
-                }
-            }
-        }
-    </script>
+        <div x-show="deadlineModalOpen" 
+             x-transition:enter="ease-out duration-300" 
+             class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle max-w-lg w-full">
+            
+            <form :action="deadlineAction" method="POST">
+                @csrf @method('PATCH')
+                <div class="bg-white px-8 pt-8 pb-6">
+                    <h3 class="text-lg font-black text-secondary uppercase tracking-widest mb-2">Prorrogar Prazo</h3>
+                    <p class="text-sm text-gray-500 mb-6">Defina um prazo exclusivo para o aluno: <span class="font-bold text-primary" x-text="selectedStudent.name"></span></p>
+
+                    <div>
+                        <x-input-label for="custom_deadline" value="Nova Data e Hora Limite" class="text-[10px] font-black uppercase text-gray-400 mb-2" />
+                        <input type="datetime-local" 
+                               name="custom_deadline" 
+                               id="custom_deadline" 
+                               x-model="selectedStudent.currentDeadline"
+                               class="block w-full border-gray-200 focus:border-primary focus:ring-primary rounded-xl shadow-sm text-sm font-bold text-secondary">
+                        <p class="text-[10px] text-gray-400 mt-2 uppercase font-bold tracking-widest">Deixe vazio para voltar ao prazo padrão da turma.</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 px-8 py-4 flex justify-end gap-3">
+                    <button type="button" @click="deadlineModalOpen = false" class="text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition">Cancelar</button>
+                    <x-primary-button type="submit">Salvar Novo Prazo</x-primary-button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    </div>
 </x-app-layout>

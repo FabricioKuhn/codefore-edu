@@ -1,7 +1,7 @@
 @extends('layouts.superadmin')
 
 @section('title', 'Dashboard')
-@section('header_title', 'Visão Geral do SaaS')
+@section('header_title', 'Dashboard')
 
 @section('content')
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

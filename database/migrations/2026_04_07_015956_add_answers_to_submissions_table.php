@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('questions', function (Blueprint $table) {
-            $table->boolean('status')->default(true); // true = active, false = disabled
-        });
-
-        Schema::table('activities', function (Blueprint $table) {
-            $table->json('disabled_students')->nullable();
+        Schema::table('submissions', function (Blueprint $table) {
+            $table->json('answers')->nullable()->after('status');
         });
     }
 
@@ -25,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('activities', function (Blueprint $table) {
+        Schema::table('submissions', function (Blueprint $table) {
             //
         });
     }

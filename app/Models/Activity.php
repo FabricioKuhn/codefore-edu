@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Activity extends Model
 {
@@ -17,7 +18,7 @@ class Activity extends Model
         'coin_conversion_rate' => 'decimal:2',
         'start_date' => 'datetime',
         'end_date' => 'datetime',
-        'disabled_students' => 'array',
+        'exam_settings' => 'array', // Transforma o JSON do banco em Array no PHP
     ];
 
     public function classroom(): BelongsTo
@@ -25,9 +26,12 @@ class Activity extends Model
         return $this->belongsTo(Classroom::class);
     }
 
-    public function questions(): HasMany
+    // 🌟 NOVA RELAÇÃO: Tabela Pivot com as Questões
+    public function questions(): BelongsToMany
     {
-        return $this->hasMany(Question::class);
+        return $this->belongsToMany(Question::class, 'activity_question')
+                    ->withPivot('weight_override')
+                    ->withTimestamps();
     }
 
     public function submissions(): HasMany
@@ -36,14 +40,14 @@ class Activity extends Model
     }
 
     public function getStatusLabelAttribute()
-{
-    return match ($this->status) {
-        'draft' => 'Rascunho',
-        'active' => 'Ativa',
-        'in_progress' => 'Em Andamento',
-        'closed' => 'Encerrada',
-        'canceled' => 'Cancelada',
-        default => $this->status,
-    };
-}
+    {
+        return match ($this->status) {
+            'draft' => 'Rascunho',
+            'active' => 'Ativa',
+            'in_progress' => 'Em Andamento',
+            'closed' => 'Encerrada',
+            'canceled' => 'Cancelada',
+            default => $this->status,
+        };
+    }
 }

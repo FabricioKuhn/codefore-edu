@@ -28,10 +28,30 @@
                     @endforelse
                 </div>
             @else
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
-                    <div class="p-6 text-secondary font-semibold">
-                        Bem-vindo ao Painel, Professor!
-                    </div>
+                <div class=" overflow-hidden sm:rounded-lg border border-gray-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ">
+        
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-gray-500 text-sm font-medium">Turmas</h3>
+            <p class="text-3xl font-bold text-gray-800 mt-2">0</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-gray-500 text-sm font-medium">Alunos</h3>
+            <p class="text-3xl font-bold text-gray-800 mt-2">0</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-gray-500 text-sm font-medium">XP Gerada (30 dias)</h3>
+            <p class="text-3xl font-bold text-emerald-500 mt-2">0</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 class="text-gray-500 text-sm font-medium">Novos Alunos (30 dias)</h3>
+            <p class="text-3xl font-bold text-gray-800 mt-2">0</p>
+        </div>
+
+    </div>
                 </div>
             @endif
         </div>
