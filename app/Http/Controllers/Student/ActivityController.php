@@ -13,16 +13,25 @@ class ActivityController extends Controller
      * Tela de Instruções (Check-in)
      */
     public function show(Activity $activity)
-    {
-        // Verifica se o aluno pertence à turma da atividade
-        if (!$activity->classroom->students->contains(auth()->id())) {
-            abort(403, 'Acesso negado.');
-        }
-
-        $submission = $activity->submissions()->where('student_id', auth()->id())->first();
-
-        return view('student.activities.show', compact('activity', 'submission'));
+{
+    // Verifica se o aluno pertence à turma
+    if (!$activity->classroom->students->contains(auth()->id())) {
+        abort(403);
     }
+
+    $submission = $activity->submissions()->where('student_id', auth()->id())->first();
+
+    // 🌟 A MÁGICA: Se já foi avaliado, manda para a tela de resultado/gabarito
+    if ($submission && in_array($submission->status, ['evaluated', 'completed'])) {
+        $questions = ($activity->type === 'exam') 
+            ? $submission->questions()->with('options')->get() 
+            : $activity->questions()->with('options')->get();
+
+        return view('student.activities.result', compact('activity', 'submission', 'questions'));
+    }
+
+    return view('student.activities.show', compact('activity', 'submission'));
+}
 
     /**
      * Inicia a missão (Marca tempo e sorteia questões se for Prova)
@@ -64,10 +73,37 @@ class ActivityController extends Controller
                              ->with('error', 'Esta missão já foi concluída.');
         }
 
-        // Se for PROVA, pega as questões sorteadas. Se for TAREFA, pega todas.
-        $questions = ($activity->type === 'exam') 
-            ? $submission->questions 
-            : $activity->questions;
+        // Se for TAREFA normal, carrega todas as questões
+        if ($activity->type !== 'exam') {
+            $questions = $activity->questions;
+        } 
+        // Se for PROVA, tenta puxar do relacionamento.
+        else {
+            $questions = $submission->questions;
+
+            // 🛡️ PLANO B: Se o relacionamento falhou ou está vazio, calcula dinamicamente com Seed
+            if ($questions === null || $questions->isEmpty()) {
+                $settings = $activity->exam_settings ?? [];
+                $mcCount = (int) ($settings['multiple_choice'] ?? 0);
+                $descCount = (int) ($settings['descriptive'] ?? 0);
+
+                // Usa a combinação do ID do aluno + ID da atividade como "semente" matemática.
+                // Isso garante que o random() dê sempre o MESMO resultado para este aluno nesta prova.
+                $seed = auth()->id() + $activity->id;
+                mt_srand($seed); 
+
+                $allMc = $activity->questions->where('type', 'multiple_choice')->values();
+                $allDesc = $activity->questions->where('type', 'descriptive')->values();
+
+                $mcQuestions = $allMc->random(min($mcCount, $allMc->count()));
+                $descQuestions = $allDesc->random(min($descCount, $allDesc->count()));
+
+                $questions = collect($mcQuestions)->merge($descQuestions)->shuffle();
+                
+                // Limpa o gerador aleatório para não afetar o resto do sistema
+                mt_srand();
+            }
+        }
 
         return view('student.activities.play', compact('activity', 'submission', 'questions'));
     }

@@ -26,7 +26,10 @@ class Activity extends Model
         return $this->belongsTo(Classroom::class);
     }
 
-    // 🌟 NOVA RELAÇÃO: Tabela Pivot com as Questões
+    public function lesson(): BelongsTo
+    {
+        return $this->belongsTo(Lesson::class);
+    }
     public function questions(): BelongsToMany
     {
         return $this->belongsToMany(Question::class, 'activity_question')

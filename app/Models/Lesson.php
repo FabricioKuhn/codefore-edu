@@ -42,4 +42,19 @@ class Lesson extends Model
         default => 'Não Iniciada',
     };
 }
+
+public function materials()
+{
+    return $this->hasMany(LessonMaterial::class);
+}
+
+public function activities()
+{
+    return $this->hasMany(Activity::class);
+}
+
+public function studentsCompleted()
+{
+    return $this->belongsToMany(User::class, 'lesson_student')->withPivot('completed_at')->withTimestamps();
+}
 }

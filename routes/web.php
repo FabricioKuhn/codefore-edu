@@ -101,6 +101,13 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':t
         Route::delete('activities/{activity}/questions/{question}/detach', [\App\Http\Controllers\ActivityController::class, 'detachQuestion'])->name('activities.questions.detach');
         Route::patch('activities/{activity}/questions/{question}/weight', [\App\Http\Controllers\ActivityController::class, 'updateQuestionWeight'])->name('activities.questions.update_weight');
         Route::patch('activities/{activity}/students/{student}/toggle', [\App\Http\Controllers\ActivityController::class, 'toggleStudent'])->name('activities.students.toggle');
+
+        // Rotas de Correção (Painel do Professor)
+    Route::prefix('activities/{activity}/submissions')->name('submissions.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Teacher\SubmissionController::class, 'index'])->name('index');
+        Route::get('/{submission}', [\App\Http\Controllers\Teacher\SubmissionController::class, 'show'])->name('show');
+        Route::post('/{submission}/evaluate', [\App\Http\Controllers\Teacher\SubmissionController::class, 'evaluate'])->name('evaluate');
+    });
 });
 
 
@@ -123,8 +130,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':s
         
         Route::get('/minha-turma', function() { return "Tela da Turma do Aluno em construção"; })->name('classrooms.index');
         Route::get('/feed', function() { return "Feed de gamificação em construção"; })->name('feed');
+        Route::get('/student/classrooms/{classroom}/lessons/{lesson}', [App\Http\Controllers\StudentLessonController::class, 'show'])->name('student.lessons.show');
+        Route::get('/classrooms/{classroom}/lessons/{lesson}', [\App\Http\Controllers\StudentLessonController::class, 'show'])->name('lessons.show');
+    Route::post('/classrooms/{classroom}/lessons/{lesson}/complete', [\App\Http\Controllers\StudentLessonController::class, 'complete'])->name('lessons.complete');
+        Route::post('/student/classrooms/{classroom}/lessons/{lesson}/complete', [App\Http\Controllers\StudentLessonController::class, 'complete'])->name('student.lessons.complete');
 
-        // 🌟 ADICIONE ESTE BLOCO AQUI EMBAIXO:
         Route::prefix('activities')->name('activities.')->group(function () {
     Route::get('/{activity}', [StudentActivity::class, 'show'])->name('show');
     Route::post('/{activity}/start', [StudentActivity::class, 'start'])->name('start');

@@ -37,6 +37,9 @@
                         <x-nav-link :href="route('teacher.students.index')" :active="request()->routeIs('teacher.students.*')">
                             {{ __('Meus Alunos') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('teacher.questions.index')" :active="request()->routeIs('teacher.questions.*')">
+                            {{ __('Banco de Questões') }}
+                        </x-nav-link>   
                     @endif
 
                     {{-- MENU DO ALUNO --}}

@@ -135,13 +135,20 @@
                                 </button>
                                 
                                 <button @click="selectedLesson = { 
-                                    id: {{ $lesson->id }}, 
-                                    title: '{{ $lesson->title ?? 'Aula Agendada' }}',
-                                    status: '{{ $lesson->status }}',
-                                    content: {{ json_encode($lesson->content ?? '') }},
-                                    attendances: {{ $lesson->attendances->pluck('status', 'user_id')->toJson() }}
-                                }; showRegisterModal = true" 
-                                class="text-secondary font-black text-[10px] uppercase mr-3 hover:brightness-90 transition">Registro</button>
+    id: {{ $lesson->id }}, 
+    title: {{ json_encode($lesson->title ?? '') }},
+    status: '{{ $lesson->status }}',
+    content: {{ json_encode($lesson->content ?? '') }},
+    video_url: {{ json_encode($lesson->video_url ?? '') }},
+    xp_reward: {{ $lesson->xp_reward ?? 0 }},
+    has_material: {{ $lesson->main_material_path ? 'true' : 'false' }},
+    attendances: {{ $lesson->attendances->pluck('status', 'user_id')->toJson() }},
+    {{-- 🌟 NOVO: Lista de IDs das atividades já vinculadas --}}
+    linked_activities: {{ $lesson->activities->pluck('id')->toJson() }}
+}; showRegisterModal = true" 
+class="text-secondary font-black text-[10px] uppercase mr-3 hover:brightness-90 transition">
+    Configurar Aula
+</button>
                                 @endif
                                 
                                 @if($lesson->status === 'scheduled')
@@ -168,29 +175,51 @@
                 </table>
             </div>
 
-            {{-- ABA: TAREFAS --}}
+            {{-- ABA: TAREFAS E AVALIAÇÕES --}}
             <div x-show="activeTab === 'tarefas'" x-cloak class="bg-white rounded-b-xl shadow-sm border border-gray-100 overflow-hidden">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">ID</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Atividade</th>
-                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">XP</th>
-                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Prazos</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">Entregas pendentes</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">Status</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-right">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach($classroom->activities as $activity)
+                        @php
+                            // Lógica para contar alunos aguardando correção nesta atividade
+                            $pendingSubmissions = $activity->submissions()->where('status', 'waiting_evaluation')->count();
+                            $hasPending = $pendingSubmissions > 0;
+                        @endphp
                         <tr class="hover:bg-gray-50/50 transition">
                             <td class="px-6 py-4 text-xs font-black text-gray-300">{{ $activity->id }}</td>
-                            <td class="px-6 py-4 font-bold text-sm text-secondary">{{ $activity->title }}</td>
-                            <td class="px-6 py-4 font-black text-xs text-primary">{{ $activity->base_xp }} XP</td>
-                            <td class="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">
-                                {{ $activity->start_date ? $activity->start_date->format('d/m/Y') : 'N/D' }} 
-                                <br>até <span class="text-red-400">{{ $activity->end_date ? $activity->end_date->format('d/m/Y') : 'N/D' }}</span>
+                            
+                            {{-- Nome da Atividade e Detalhes --}}
+                            <td class="px-6 py-4">
+                                <span class="font-bold text-sm text-secondary block">{{ $activity->title }}</span>
+                                <span class="text-[9px] font-black text-primary uppercase">{{ $activity->base_xp }} XP</span>
+                                <span class="text-gray-300 mx-1">•</span>
+                                <span class="text-[9px] font-bold text-gray-400 uppercase">
+                                    Vence em: {{ $activity->end_date ? $activity->end_date->format('d/m/Y') : 'S/ Prazo' }}
+                                </span>
                             </td>
+                            
+                            {{-- Coluna de Correções Pendentes --}}
+                            <td class="px-6 py-4 text-center">
+                                @if($hasPending)
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg text-xs font-bold animate-pulse">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        {{ $pendingSubmissions }} para corrigir
+                                    </div>
+                                @else
+                                    <span class="text-xs font-bold text-gray-300">-</span>
+                                @endif
+                            </td>
+
+                            {{-- Status --}}
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-1 rounded text-[9px] font-black uppercase {{ 
                                     $activity->status === 'draft' ? 'bg-gray-100 text-gray-500' : (
@@ -199,12 +228,34 @@
                                     {{ $activity->status_label }}
                                 </span>
                             </td>
+                            
+                            {{-- Ações --}}
                             <td class="px-6 py-4 text-right">
-                                <a href="{{ route(auth()->user()->role . '.activities.show', $activity) }}" class="text-primary font-black text-[10px] uppercase mr-3">Gerenciar</a>
-                                <button class="text-red-400 font-black text-[10px] uppercase">Inativar</button>
+                                <div class="flex items-center justify-end gap-3">
+                                    {{-- Botão de Correção (Destaque se tiver pendência) --}}
+                                    @if($activity->status !== 'draft')
+                                        <a href="{{ route(auth()->user()->role . '.submissions.index', $activity) }}" 
+                                           class="text-[10px] font-black uppercase transition-all px-3 py-1.5 rounded-lg {{ $hasPending ? 'bg-yellow-400 text-yellow-900 hover:brightness-110 shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                                            Correções
+                                        </a>
+                                    @endif
+                                    
+                                    {{-- Botão Gerenciar --}}
+                                    <a href="{{ route(auth()->user()->role . '.activities.show', $activity) }}" class="text-primary font-black text-[10px] uppercase hover:underline">
+                                        Configurar
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
+                        
+                        @if($classroom->activities->isEmpty())
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-400 font-bold text-sm">
+                                Nenhuma atividade vinculada a esta turma.
+                            </td>
+                        </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -292,23 +343,82 @@
             </div>
         </div>
 
-        {{-- MODAL: REGISTRO DE AULA --}}
+        {{-- MODAL: CONFIGURAR E REGISTRAR AULA (LMS) --}}
         <div x-show="showRegisterModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" @click="showRegisterModal = false"></div>
-                <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
-                    <form :action="'/' + urlPrefix + '/lessons/' + selectedLesson.id + '/register'" method="POST">
+                <div class="relative bg-white rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden transform transition-all">
+                    
+                    <form :action="'/' + urlPrefix + '/lessons/' + selectedLesson.id + '/register'" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="bg-secondary px-6 py-4">
-                            <h3 class="text-lg font-black text-white uppercase tracking-tight" x-text="'Registro de Aula: ' + selectedLesson.title"></h3>
+                            <h3 class="text-lg font-black text-white uppercase tracking-tight" x-text="(selectedLesson.title ? 'Configurar: ' + selectedLesson.title : 'Configurar Nova Aula')"></h3>
                         </div>
-                        <div class="p-6">
-                            <x-input-label value="Conteúdo Ministrado" class="text-[10px] font-black uppercase text-gray-400 mb-2" />
-                            <textarea name="content" x-model="selectedLesson.content" required rows="6" class="block w-full border-gray-100 bg-gray-50 rounded-xl focus:border-secondary focus:ring-secondary shadow-sm text-sm" placeholder="Descreva o que foi trabalhado em aula..."></textarea>
+                        
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <x-input-label value="Título da Aula *" class="text-[10px] font-black uppercase text-gray-400 mb-1" />
+                                    <x-text-input name="title" x-model="selectedLesson.title" required class="w-full text-sm" placeholder="Ex: Aula 01 - Introdução" />
+                                </div>
+
+                                <div>
+                                    <x-input-label value="Resumo / Registro da Aula *" class="text-[10px] font-black uppercase text-gray-400 mb-1" />
+                                    <textarea name="content" x-model="selectedLesson.content" required rows="5" class="block w-full border-gray-300 focus:border-primary focus:ring-primary rounded-xl shadow-sm text-sm" placeholder="Descreva o conteúdo ministrado..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                
+                                <div>
+                                    <x-input-label value="Link do Vídeo (YouTube/Vimeo)" class="text-[10px] font-black uppercase text-gray-400 mb-1" />
+                                    <x-text-input name="video_url" type="url" x-model="selectedLesson.video_url" class="w-full text-sm" placeholder="https://..." />
+                                </div>
+
+                                <div>
+                                    <x-input-label value="Material Principal (PDF, PPTX)" class="text-[10px] font-black uppercase text-gray-400 mb-1" />
+                                    <input type="file" name="material" accept=".pdf,.doc,.docx,.ppt,.pptx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition cursor-pointer"/>
+                                    <p x-show="selectedLesson.has_material" class="text-[10px] text-green-600 font-bold mt-1">✓ Material já anexado. Enviar novo substituirá o atual.</p>
+                                </div>
+
+                                <div class="pt-2 border-t border-gray-200">
+                                    <x-input-label value="Recompensa (XP)" class="text-[10px] font-black uppercase text-gray-400 mb-1" />
+                                    <div class="flex items-center gap-2">
+                                        <x-text-input name="xp_reward" type="number" min="0" x-model="selectedLesson.xp_reward" class="w-24 text-sm font-bold text-primary" />
+                                        <span class="text-xs font-bold text-gray-400">XP para o aluno ao concluir</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        
+                        <div class="md:col-span-2 pt-4 border-t border-gray-200">
+                                <x-input-label value="Vincular Tarefas a esta Aula" class="text-[10px] font-black uppercase text-gray-400 mb-2" />
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    @forelse($classroom->activities as $activity)
+                                        <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-primary/50 transition">
+                                            <input type="checkbox" name="activity_ids[]" value="{{ $activity->id }}" 
+                                                   x-model="selectedLesson.linked_activities" 
+                                                   class="rounded border-gray-300 text-primary focus:ring-primary shadow-sm w-4 h-4">
+                                            
+                                            <div class="flex flex-col flex-1 truncate">
+                                                <span class="text-xs font-bold text-secondary truncate">{{ $activity->title }}</span>
+                                                <span class="text-[9px] text-gray-400 uppercase font-black">{{ $activity->status_label }}</span>
+                                            </div>
+                                            
+                                            <span class="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-md">{{ $activity->base_xp }} XP</span>
+                                        </label>
+                                    @empty
+                                        <p class="text-xs text-gray-400 italic col-span-2 text-center py-2">Nenhuma tarefa criada nesta turma ainda. Você pode criar uma na aba "Tarefas".</p>
+                                    @endforelse
+                                </div>
+                            </div>
                         </div>
+
                         <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
                             <button type="button" @click="showRegisterModal = false" class="text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition">Cancelar</button>
-                            <x-primary-button>Salvar Registro</x-primary-button>
+                            <x-primary-button>Salvar e Configurar Aula</x-primary-button>
                         </div>
                     </form>
                 </div>

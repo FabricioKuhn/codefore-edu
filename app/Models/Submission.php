@@ -18,21 +18,18 @@ class Submission extends Model
         'custom_deadline' => 'datetime',
         'started_at' => 'datetime',
         'submitted_at' => 'datetime',
-        'answers' => 'array',
+        'evaluated_at' => 'datetime',
+        'answers' => 'array',        // Garante que as respostas do aluno sejam lidas como array
+        'teacher_notes' => 'array',  // Garante que as notas do prof sejam lidas como array
     ];
 
-    public function activity(): BelongsTo
-    {
+    public function activity(): BelongsTo {
         return $this->belongsTo(Activity::class);
     }
 
-    public function student(): BelongsTo
-    {
+    public function student(): BelongsTo {
         return $this->belongsTo(User::class, 'student_id');
     }
 
-    public function answers(): HasMany
-    {
-        return $this->hasMany(SubmissionAnswer::class);
-    }
+
 }

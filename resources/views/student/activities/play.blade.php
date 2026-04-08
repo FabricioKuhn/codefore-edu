@@ -71,21 +71,22 @@
         @endif
     </div>
 
-    @if($question->attachments)
-<div class="flex flex-wrap justify-center gap-4 mt-4">
-    @foreach($question->attachments as $img)
-        <div class="relative group cursor-zoom-in">
-            <img src="{{ asset('storage/'.$img) }}" 
-                 @click="openLightbox('{{ asset('storage/'.$img) }}')"
-                 class="rounded-xl shadow-sm max-w-full max-h-40 md:max-h-48 w-auto h-auto border-2 border-white transition-all hover:scale-105">
-            
-            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/5 rounded-xl pointer-events-none">
-                <svg class="w-6 h-6 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
+    @if(!empty($question->attachments))
+        <div class="flex flex-wrap justify-center gap-4 mt-4">
+            {{-- Proteção adicionada aqui com ?? [] --}}
+            @foreach($question->attachments ?? [] as $img)
+                <div class="relative group cursor-zoom-in">
+                    <img src="{{ asset('storage/'.$img) }}" 
+                         @click="openLightbox('{{ asset('storage/'.$img) }}')"
+                         class="rounded-xl shadow-sm max-w-full max-h-40 md:max-h-48 w-auto h-auto border-2 border-white transition-all hover:scale-105">
+                    
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/5 rounded-xl pointer-events-none">
+                        <svg class="w-6 h-6 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                </div>
+            @endforeach
         </div>
-    @endforeach
-</div>
-@endif
+    @endif
 
     @if($question->guidelines)
         <div x-data="{ showHint: false }" class="max-w-2xl mx-auto w-full">
@@ -105,7 +106,8 @@
     <div class="grid grid-cols-1 gap-3 max-w-2xl mx-auto w-full pt-4">
         @if($question->type === 'multiple_choice')
             @php $letters = ['a', 'b', 'c', 'd', 'e']; @endphp
-            @foreach($question->options as $key => $option)
+            {{-- Proteção adicionada aqui com ?? [] --}}
+            @foreach($question->options ?? [] as $key => $option)
                 <label class="relative flex items-center p-4 bg-white rounded-2xl border-2 border-gray-200 shadow-sm cursor-pointer transition-all hover:border-primary/40 group active:scale-[0.99] has-[:checked]:border-primary has-[:checked]:bg-primary/[0.03]">
                     <input type="radio" name="answers[{{ $question->id }}]" value="{{ $key }}" class="hidden" @change="autoNext ? setTimeout(() => next(), 400) : null">
                     
