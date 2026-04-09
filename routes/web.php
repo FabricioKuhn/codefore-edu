@@ -7,6 +7,7 @@ use App\Http\Controllers\SuperAdmin\InstitutionController;
 use App\Http\Middleware\IsSuperAdmin;
 use App\Http\Controllers\ActivityController; // Para o Professor
 use App\Http\Controllers\Student\ActivityController as StudentActivity; // Para o Aluno
+use App\Http\Controllers\Teacher\DashboardController;
 
 
 Route::get('/', function () {
@@ -39,10 +40,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':a
     ->name('admin.')  
     ->group(function () {
         
-        Route::get('/dashboard', function () {
-            $user = auth()->user();
-            return view('dashboard', compact('user'));
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'adminIndex'])->name('dashboard');
 
         Route::resource('classrooms', \App\Http\Controllers\ClassroomController::class);
         Route::post('classrooms/{classroom}/students', [\App\Http\Controllers\ClassroomStudentController::class, 'store'])->name('classrooms.students.store');
@@ -77,9 +75,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':t
     ->name('teacher.') 
     ->group(function () {
         
-        Route::get('/dashboard', function () {
-            return view('dashboard'); // Depois criaremos uma view só para o professor
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'teacherIndex'])->name('dashboard');
 
         // Rotas do dia a dia do professor (Aulas, Atividades, Chamada)
         Route::resource('activities', \App\Http\Controllers\ActivityController::class);
@@ -101,6 +97,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':t
         Route::delete('activities/{activity}/questions/{question}/detach', [\App\Http\Controllers\ActivityController::class, 'detachQuestion'])->name('activities.questions.detach');
         Route::patch('activities/{activity}/questions/{question}/weight', [\App\Http\Controllers\ActivityController::class, 'updateQuestionWeight'])->name('activities.questions.update_weight');
         Route::patch('activities/{activity}/students/{student}/toggle', [\App\Http\Controllers\ActivityController::class, 'toggleStudent'])->name('activities.students.toggle');
+       
 
         // Rotas de Correção (Painel do Professor)
     Route::prefix('activities/{activity}/submissions')->name('submissions.')->group(function () {
@@ -119,11 +116,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':s
     ->name('student.') 
     ->group(function () {
         
-        Route::get('/dashboard', function () {
-            $user = auth()->user();
-            $user->load('classrooms');
-            return view('dashboard', compact('user'));
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'studentIndex'])->name('dashboard');
 
         // Rotas do Aluno
         Route::get('classrooms/{classroom}', [\App\Http\Controllers\StudentClassroomController::class, 'show'])->name('classrooms.show');
