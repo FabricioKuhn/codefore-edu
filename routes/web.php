@@ -8,6 +8,7 @@ use App\Http\Middleware\IsSuperAdmin;
 use App\Http\Controllers\ActivityController; // Para o Professor
 use App\Http\Controllers\Student\ActivityController as StudentActivity; // Para o Aluno
 use App\Http\Controllers\Teacher\DashboardController;
+use App\Http\Controllers\ClassroomController;
 
 
 Route::get('/', function () {
@@ -64,7 +65,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':a
         Route::delete('activities/{activity}/questions/{question}/detach', [\App\Http\Controllers\ActivityController::class, 'detachQuestion'])->name('activities.questions.detach');
         Route::patch('activities/{activity}/questions/{question}/weight', [\App\Http\Controllers\ActivityController::class, 'updateQuestionWeight'])->name('activities.questions.update_weight');
         Route::patch('activities/{activity}/students/{student}/toggle', [\App\Http\Controllers\ActivityController::class, 'toggleStudent'])->name('activities.students.toggle');
-});
+        
+        Route::post('classrooms/{classroom}/lessons/add-manual', [ClassroomController::class, 'addManualLessons'])->name('classrooms.lessons.add-manual');
+
+    });
 
 
 // =======================================================================

@@ -1,12 +1,18 @@
 import './bootstrap';
+import '../css/app.css';
 
-import Alpine from 'alpinejs';
-import mask from '@alpinejs/mask';
+import { createApp, h } from 'vue';
+import { createInertiaApp } from '@inertiajs/vue3';
 
-window.Alpine = Alpine;
-
-// Registrar o plugin mask ANTES de iniciar o Alpine
-Alpine.plugin(mask);
-
-// Iniciar Alpine.js
-Alpine.start();
+createInertiaApp({
+    title: (title) => `${title} - Codeforce`,
+    resolve: name => {
+        const pages = import.meta.glob('./Pages/**/*.vue', { eager: true })
+        return pages[`./Pages/${name}.vue`]
+    },
+    setup({ el, App, props, plugin }) {
+        createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .mount(el)
+    },
+});

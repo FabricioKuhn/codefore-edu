@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Se você tiver outros middlewares globais, eles continuam aqui
         $middleware->web(append: [
             \App\Http\Middleware\TenantMiddleware::class,
+            \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -5,65 +5,86 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\Classroom;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ActivityController extends Controller
 {
     public function show(Activity $activity)
-    {
-        if ($activity->classroom->teacher_id !== request()->user()->id) {
-            abort(403);
-        }
-        
-        $activity->load('questions.options');
-        return view('activities.show', compact('activity'));
+{
+    if (auth()->user()->role !== 'admin' && $activity->classroom->teacher_id !== auth()->id()) {
+        abort(403, 'Acesso Negado.');
     }
 
-    public function create(Request $request)
-    {
-        $classroom = Classroom::findOrFail($request->classroom_id);
-        if ($classroom->teacher_id !== request()->user()->id) {
-            abort(403);
-        }
-        return view('activities.create', compact('classroom'));
+    // ✨ CORREÇÃO: Removido o 'questions.tags' que causava o erro
+    $activity->load([
+        'classroom.students',
+        'questions', 
+        'submissions'
+    ]);
+
+    $availableQuestions = \App\Models\Question::where('institution_id', auth()->user()->institution_id)
+        ->where('status', true)
+        ->whereNotIn('id', $activity->questions->pluck('id'))
+        ->latest()
+        ->get();
+
+    return \Inertia\Inertia::render('Admin/Activities/Show', [
+        'activity' => $activity,
+        'availableQuestions' => $availableQuestions
+    ]);
+}
+
+    // ONDE ENCONTRAR: Método create()
+// ONDE ENCONTRAR: app/Http/Controllers/ActivityController.php
+
+public function create(Request $request)
+{
+    $classroom = Classroom::findOrFail($request->classroom_id);
+
+    // ✨ NOVA REGRA: Se não for admin E não for o professor da turma, barra.
+    if (auth()->user()->role !== 'admin' && $classroom->teacher_id !== auth()->id()) {
+        abort(403, 'Acesso negado: Você não tem permissão para esta turma.');
     }
 
-    /**
-     * Salva uma nova Avaliação (Tarefa ou Prova)
-     */
-    public function store(Request $request)
-    {
-        // 1. Regras de Validação V2
-        $rules = [
-            'classroom_id' => 'required|exists:classrooms,id',
-            'type' => 'required|in:task,exam',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'base_xp' => 'required|integer|min:1',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'time_limit_minutes' => 'nullable|integer|min:1',
-        ];
+    return \Inertia\Inertia::render('Admin/Activities/Create', [
+        'classroom' => $classroom
+    ]);
+}
 
-        // Se for PROVA, exige que as configurações de sorteio sejam preenchidas
-        if ($request->type === 'exam') {
-            $rules['exam_settings'] = 'required|array';
-            $rules['exam_settings.multiple_choice'] = 'required|integer|min:0';
-            $rules['exam_settings.descriptive'] = 'required|integer|min:0';
-        }
+public function store(Request $request)
+{
+    $classroom = Classroom::findOrFail($request->classroom_id);
 
-        $validated = $request->validate($rules);
-
-        // Define status inicial como rascunho
-        $validated['status'] = 'draft';
-
-        // 2. Salva no banco de dados
-        $activity = \App\Models\Activity::create($validated);
-
-        // 3. Redireciona para o painel de controle (show) da atividade
-        return redirect()->route(auth()->user()->role . '.activities.show', $activity)
-                         ->with('success', 'Avaliação criada! Agora configure as questões.');
+    // ✨ Proteção no salvamento também!
+    if (auth()->user()->role !== 'admin' && $classroom->teacher_id !== auth()->id()) {
+        abort(403);
     }
 
+    $rules = [
+        'classroom_id' => 'required|exists:classrooms,id',
+        'type' => 'required|in:task,exam',
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'base_xp' => 'required|integer|min:1',
+        'start_date' => 'nullable|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'time_limit_minutes' => 'nullable|integer|min:1',
+    ];
+
+    if ($request->type === 'exam') {
+        $rules['exam_settings'] = 'required|array';
+        $rules['exam_settings.multiple_choice'] = 'required|integer|min:0';
+        $rules['exam_settings.descriptive'] = 'required|integer|min:0';
+    }
+
+    $validated = $request->validate($rules);
+    $validated['status'] = 'draft';
+
+    $activity = \App\Models\Activity::create($validated);
+
+    return redirect()->route(auth()->user()->role . '.activities.show', $activity->id)
+                     ->with('success', 'Avaliação criada com sucesso!');
+}
 
     public function edit(\App\Models\Activity $activity)
 {
@@ -227,5 +248,11 @@ class ActivityController extends Controller
     return back()->with('success', "Prazo individual de {$student->name} atualizado!");
 }
 
+
+public function index()
+    {
+        // Esquece a listagem de atividades: joga o usuário de volta para as turmas
+        return redirect()->route(auth()->user()->role . '.classrooms.index');
+    }
 
 }

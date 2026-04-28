@@ -31,44 +31,13 @@ class Classroom extends Model
 
     public function generateLessons()
     {
-        // 1. SEGURANÇA: Se não houver dias selecionados, nem começa o processo.
-    // Isso evita o erro do in_array e economiza processamento.
-    if (empty($this->days_of_week) || !is_array($this->days_of_week)) {
-        return; 
-    }
-
-    // Apaga aulas agendadas existentes
-    $this->lessons()->where('status', 'scheduled')->delete();
-
-    $lessonsCreated = 0;
-    $currentDate = \Carbon\Carbon::parse($this->start_date);
-    
-    $holidays = [
-        '01-01', '21-04', '01-05', '07-09', '12-10', '02-11', '15-11', '25-12'
-    ];
-
-    while ($lessonsCreated < $this->total_lessons) {
-        // Agora o in_array está seguro, pois o if lá em cima garantiu que é um array
-        if (in_array((string)$currentDate->dayOfWeek, $this->days_of_week)) {
-            
-            $isHoliday = in_array($currentDate->format('d-m'), $holidays);
-
-            if (!$isHoliday || !$this->skip_holidays) {
-                $this->lessons()->create([
-                    'title' => 'Aula Agendada',
-                    'date' => $currentDate->format('Y-m-d'),
-                    'start_time' => $this->start_time,
-                    'end_time' => $this->end_time,
-                    'status' => 'scheduled',
-                ]);
-                $lessonsCreated++;
-            }
+        // Validação básica: se não tiver dias da semana, não faz nada
+        if (empty($this->days_of_week) || !is_array($this->days_of_week)) {
+            return; 
         }
-        
-        $currentDate->addDay();
 
-        if ($currentDate->diffInYears($this->start_date) > 2) break;
-    }
+        // Chama o Job em background para processar as aulas
+        \App\Jobs\GenerateClassroomLessons::dispatch($this);
     }
 
     public function teacher(): BelongsTo
@@ -90,4 +59,18 @@ class Classroom extends Model
     {
         return $this->hasMany(Lesson::class);
     }
+
+    public function toggleStatus()
+{
+    // Inverte o is_active que já existe na sua tabela classrooms
+    $novoStatus = !$this->is_active;
+    $this->update(['is_active' => $novoStatus]);
+
+    // O update() do Eloquent em relacionamentos é em massa, 
+    // então ele vai desligar todas as lessons e activities de uma vez.
+    $this->lessons()->update(['is_active' => $novoStatus]);
+    $this->activities()->update(['is_active' => $novoStatus]);
+
+    return $novoStatus;
+}
 }

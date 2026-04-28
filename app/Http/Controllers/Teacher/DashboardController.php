@@ -9,6 +9,10 @@ use App\Models\Activity;
 use App\Models\Submission;
 use App\Models\Lesson;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+
+
 
 class DashboardController extends Controller
 {
@@ -21,13 +25,12 @@ class DashboardController extends Controller
 
     // DASHBOARD DO ADMIN DA ESCOLA
     public function adminIndex()
-    {
-        $data = $this->getSharedDashboardData();
-        // Caso queira adicionar algo específico pro admin no futuro:
-        // $data['totalProfessores'] = User::where('institution_id', $data['tenant']->id)->where('role', 'teacher')->count();
-        
-        return view('admin.dashboard', $data);
-    }
+{
+    $data = $this->getSharedDashboardData();
+    
+    // Mudamos de view() para Inertia::render()
+    return Inertia::render('Admin/Dashboard', $data); 
+}
 
     public function studentIndex()
 {
